@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import app from "../utils/firebase";
 import {
   collection,
@@ -7,6 +7,7 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
+import GoogleMapReact from 'google-map-react';
 
 export default function Resources() {
   const db = getFirestore(app);
@@ -14,6 +15,11 @@ export default function Resources() {
   const [resources, setResources] = useState([]);
   const [filter, setFilter] = useState({ category: "All", severity: "All" });
   const [sortField, setSortField] = useState("neededBy");
+  const [showMap, setShowMap] = useState(false);
+  const [mapCenter, setMapCenter] = useState({ lat: 0, lng: 0 });
+  const mapRef = useRef(null);
+  const mapsRef = useRef(null);
+  const heatmapRef = useRef(null);
 
   const fetchResources = async () => {
     setLoading(true);
@@ -50,6 +56,7 @@ export default function Resources() {
   const sortedResources = filteredResources.sort((a, b) =>
     a[sortField].localeCompare(b[sortField])
   );
+
   const getSeverityColor = (severity) => {
     switch (severity) {
       case "High":
@@ -62,9 +69,70 @@ export default function Resources() {
         return "text-gray-600";
     }
   };
+
   useEffect(() => {
     fetchResources();
   }, []);
+
+  useEffect(() => {
+    if (resources.length > 0) {
+      const avgLat = resources.reduce((sum, r) => sum + r.location.latitude, 0) / resources.length;
+      const avgLng = resources.reduce((sum, r) => sum + r.location.longitude, 0) / resources.length;
+      setMapCenter({ lat: avgLat, lng: avgLng });
+    }
+  }, [resources]);
+
+  const renderHeatmap = useCallback(() => {
+    if (!mapRef.current || !mapsRef.current || !resources.length) return;
+
+    if (heatmapRef.current) {
+      heatmapRef.current.setMap(null);
+    }
+
+    const heatmapData = resources.map(resource => ({
+      location: new mapsRef.current.LatLng(resource.location.latitude, resource.location.longitude),
+      weight: resource.severity === 'High' ? 5 : resource.severity === 'Low' ? 3 : 1,
+    }));
+
+    heatmapRef.current = new mapsRef.current.visualization.HeatmapLayer({
+      data: heatmapData,
+      map: mapRef.current,
+    });
+  }, [resources]);
+
+  useEffect(() => {
+    if (showMap) {
+      renderHeatmap();
+    }
+  }, [showMap, renderHeatmap]);
+
+  const handleApiLoaded = ({ map, maps }) => {
+    mapRef.current = map;
+    mapsRef.current = maps;
+    renderHeatmap();
+  };
+
+  const handleToggleMap = () => {
+    setShowMap(prev => !prev);
+  };
+
+  const renderMap = () => {
+    return (
+      <div style={{ height: '500px', width: '100%' }}>
+        <GoogleMapReact
+          bootstrapURLKeys={{ 
+            key: "AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc",
+            libraries: ['visualization']
+          }}
+          defaultCenter={mapCenter}
+          defaultZoom={16}
+          yesIWantToUseGoogleMapApiInternals
+          onGoogleApiLoaded={handleApiLoaded}
+        >
+        </GoogleMapReact>
+      </div>
+    );
+  };
 
   return (
     <div className="p-4">
@@ -113,6 +181,12 @@ export default function Resources() {
           </select>
         </div>
         <div>
+        <button
+          onClick={handleToggleMap}
+          className="ml-4 px-4 py-2 mr-4 bg-blue-500 text-white rounded hover:bg-blue-700"
+        >
+          {showMap ? 'Hide Map' : 'Show Map'}
+        </button>
           <label className="mr-2">Sort by:</label>
           <select
             value={sortField}
@@ -126,8 +200,12 @@ export default function Resources() {
               Severity
             </option>
           </select>
+          
         </div>
       </div>
+
+      {showMap && renderMap()}
+      
       {loading ? (
         <p>Loading...</p>
       ) : (
@@ -182,9 +260,7 @@ export default function Resources() {
           ) : (
             <>
               <div className="h-[50vh] flex items-center justify-center">
-                <p className="text-center text-2xl font-bold">
-                  No resources found
-                </p>
+                <p className="text-center text-gray-600">No resources found.</p>
               </div>
             </>
           )}

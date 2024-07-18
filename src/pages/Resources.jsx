@@ -7,7 +7,7 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import GoogleMapReact from 'google-map-react';
+import GoogleMapReact from "google-map-react";
 
 export default function Resources() {
   const db = getFirestore(app);
@@ -76,8 +76,12 @@ export default function Resources() {
 
   useEffect(() => {
     if (resources.length > 0) {
-      const avgLat = resources.reduce((sum, r) => sum + r.location.latitude, 0) / resources.length;
-      const avgLng = resources.reduce((sum, r) => sum + r.location.longitude, 0) / resources.length;
+      const avgLat =
+        resources.reduce((sum, r) => sum + r.location.latitude, 0) /
+        resources.length;
+      const avgLng =
+        resources.reduce((sum, r) => sum + r.location.longitude, 0) /
+        resources.length;
       setMapCenter({ lat: avgLat, lng: avgLng });
     }
   }, [resources]);
@@ -89,9 +93,13 @@ export default function Resources() {
       heatmapRef.current.setMap(null);
     }
 
-    const heatmapData = resources.map(resource => ({
-      location: new mapsRef.current.LatLng(resource.location.latitude, resource.location.longitude),
-      weight: resource.severity === 'High' ? 5 : resource.severity === 'Low' ? 3 : 1,
+    const heatmapData = resources.map((resource) => ({
+      location: new mapsRef.current.LatLng(
+        resource.location.latitude,
+        resource.location.longitude
+      ),
+      weight:
+        resource.severity === "High" ? 5 : resource.severity === "Low" ? 3 : 1,
     }));
 
     heatmapRef.current = new mapsRef.current.visualization.HeatmapLayer({
@@ -113,23 +121,22 @@ export default function Resources() {
   };
 
   const handleToggleMap = () => {
-    setShowMap(prev => !prev);
+    setShowMap((prev) => !prev);
   };
 
   const renderMap = () => {
     return (
-      <div style={{ height: '500px', width: '100%' }}>
+      <div style={{ height: "500px", width: "100%" }}>
         <GoogleMapReact
-          bootstrapURLKeys={{ 
+          bootstrapURLKeys={{
             key: "AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc",
-            libraries: ['visualization']
+            libraries: ["visualization"],
           }}
           defaultCenter={mapCenter}
           defaultZoom={16}
           yesIWantToUseGoogleMapApiInternals
           onGoogleApiLoaded={handleApiLoaded}
-        >
-        </GoogleMapReact>
+        ></GoogleMapReact>
       </div>
     );
   };
@@ -181,12 +188,12 @@ export default function Resources() {
           </select>
         </div>
         <div>
-        <button
-          onClick={handleToggleMap}
-          className="ml-4 px-4 py-2 mr-4 bg-blue-500 text-white rounded hover:bg-blue-700"
-        >
-          {showMap ? 'Hide Map' : 'Show Map'}
-        </button>
+          <button
+            onClick={handleToggleMap}
+            className="ml-4 px-4 py-2 mr-4 bg-blue-500 text-white rounded hover:bg-blue-700"
+          >
+            {showMap ? "Hide HeatMap" : "Show HeatMap"}
+          </button>
           <label className="mr-2">Sort by:</label>
           <select
             value={sortField}
@@ -200,18 +207,17 @@ export default function Resources() {
               Severity
             </option>
           </select>
-          
         </div>
       </div>
 
       {showMap && renderMap()}
-      
+
       {loading ? (
         <p>Loading...</p>
       ) : (
         <>
           {sortedResources?.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-4 my-4">
               {sortedResources?.map((resource) => (
                 <div
                   key={resource.id}

@@ -6,6 +6,9 @@ import Incidents from "./pages/Incidents";
 import Resources from "./pages/Resources";
 import Members from "./pages/Members";
 import Dashboard from "./pages/Dashboard";
+import Analytics from "./pages/Analytics";
+import AddOrganization from "./pages/AddOrganisation";
+import Organisations from "./pages/Organisations";
 
 function App() {
   return (
@@ -17,6 +20,12 @@ function App() {
           <Route path="/incidents" element={<Incidents />} />
           <Route path="/resources" element={<Resources />} />
           <Route path="/members" element={<Members />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/organisations" element={<Organisations />} />
+          <Route
+            path="/organisations/add-organisation"
+            element={<AddOrganization />}
+          />
         </Routes>
       </DefaultLayout>
     </>

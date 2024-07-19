@@ -22,6 +22,7 @@ export default function Resources() {
   const heatmapRef = useRef(null);
   const [selectedResourceId, setSelectedResourceId] = useState("");
   const [marker, setMarker] = useState(null);
+  const [uniqueCategories, setUniqueCategories] = useState(["All"]);
 
   const fetchResources = async () => {
     setLoading(true);
@@ -32,6 +33,13 @@ export default function Resources() {
       return { id, ...vals };
     });
     setResources(data);
+
+    const categories = [
+      "All",
+      ...new Set(data.map((resource) => resource.category)),
+    ];
+    setUniqueCategories(categories);
+
     setLoading(false);
   };
 
@@ -51,13 +59,13 @@ export default function Resources() {
   const handleResourceSelect = (e) => {
     const id = e.target.value;
     setSelectedResourceId(id);
-    const selected = resources.find(r => r.id === id);
+    const selected = resources.find((r) => r.id === id);
     if (selected && mapRef.current && mapsRef.current) {
       const position = new mapsRef.current.LatLng(
         selected.location.latitude,
         selected.location.longitude
       );
-      
+
       if (marker) {
         marker.setPosition(position);
       } else {
@@ -67,7 +75,7 @@ export default function Resources() {
         });
         setMarker(newMarker);
       }
-      
+
       mapRef.current.panTo(position);
     }
   };
@@ -79,7 +87,7 @@ export default function Resources() {
     );
   });
 
-  const sortedResources = filteredResources.sort((a, b) =>
+  const sortedAndFilteredResources = filteredResources.sort((a, b) =>
     a[sortField].localeCompare(b[sortField])
   );
 
@@ -114,11 +122,11 @@ export default function Resources() {
 
   const renderHeatmap = useCallback(() => {
     if (!mapRef.current || !mapsRef.current || !resources.length) return;
-  
+
     if (heatmapRef.current) {
       heatmapRef.current.setMap(null);
     }
-  
+
     const heatmapData = resources.map((resource) => ({
       location: new mapsRef.current.LatLng(
         resource.location.latitude,
@@ -127,7 +135,7 @@ export default function Resources() {
       weight:
         resource.severity === "High" ? 5 : resource.severity === "Low" ? 1 : 3,
     }));
-  
+
     heatmapRef.current = new mapsRef.current.visualization.HeatmapLayer({
       data: heatmapData,
       map: mapRef.current,
@@ -152,21 +160,42 @@ export default function Resources() {
 
   const renderMap = () => {
     return (
-      <div style={{ height: "500px", width: "100%", position: "relative" }}>
-        <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1, backgroundColor: "white", padding: "10px", borderRadius: "5px" }}>
-          <select 
-            value={selectedResourceId} 
+      <div
+        style={{
+          height: "500px",
+          width: "100%",
+          position: "relative",
+          borderRadius: "15px",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: 10,
+            left: 10,
+            zIndex: 1,
+            backgroundColor: "white",
+            padding: "10px",
+            borderRadius: "10px",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+          }}
+        >
+          <select
+            value={selectedResourceId}
             onChange={handleResourceSelect}
-            className="p-2 border bg-white rounded text-black"
+            className="p-2 border rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+            style={{ backgroundColor: "transparent" }}
           >
             <option value="">Select a resource</option>
-            {resources.map(resource => (
+            {sortedAndFilteredResources.map((resource) => (
               <option key={resource.id} value={resource.id}>
                 {resource.requestTitle}
               </option>
             ))}
           </select>
         </div>
+
         <GoogleMapReact
           bootstrapURLKeys={{
             key: "AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc",
@@ -176,14 +205,19 @@ export default function Resources() {
           defaultZoom={16}
           yesIWantToUseGoogleMapApiInternals
           onGoogleApiLoaded={handleApiLoaded}
-        >
-          {/* No custom markers needed here */}
-        </GoogleMapReact>
+          options={{
+            styles: [
+              {
+                featureType: "all",
+                elementType: "all",
+              },
+            ],
+          }}
+        ></GoogleMapReact>
       </div>
     );
   };
 
-  // Cleanup effect for marker
   useEffect(() => {
     return () => {
       if (marker) {
@@ -194,7 +228,7 @@ export default function Resources() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Resources</h1>
+      <h1 className="text-2xl font-bold mb-4">Requests</h1>
       <div className="mb-4 flex justify-between items-center">
         <div>
           <label className="mr-2">Category:</label>
@@ -202,30 +236,39 @@ export default function Resources() {
             name="category"
             value={filter.category}
             onChange={handleFilterChange}
-            className="p-2 border bg-transparent rounded"
+            className="p-2 border bg-transparent rounded-lg"
           >
-            <option className="text-black" value="All">All</option>
-            <option className="text-black" value="Clothing">Clothing</option>
-            <option className="text-black" value="Technical">Technical</option>
-            <option className="text-black" value="Food">Food</option>
+            {uniqueCategories.map((category) => (
+              <option key={category} className="text-black" value={category}>
+                {category}
+              </option>
+            ))}
           </select>
           <label className="mr-2 ml-4">Severity:</label>
           <select
             name="severity"
             value={filter.severity}
             onChange={handleFilterChange}
-            className="p-2 border bg-transparent rounded"
+            className="p-2 border bg-transparent rounded-lg"
           >
-            <option className="text-black" value="All">All</option>
-            <option className="text-black" value="Low">Low</option>
-            <option className="text-black" value="Medium">Medium</option>
-            <option className="text-black" value="High">High</option>
+            <option className="text-black" value="All">
+              All
+            </option>
+            <option className="text-black" value="Low">
+              Low
+            </option>
+            <option className="text-black" value="Medium">
+              Medium
+            </option>
+            <option className="text-black" value="High">
+              High
+            </option>
           </select>
         </div>
         <div>
           <button
             onClick={handleToggleMap}
-            className="ml-4 px-4 py-2 mr-4 bg-blue-500 text-white rounded hover:bg-blue-700"
+            className="ml-4 px-4 py-2 mr-4 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
           >
             {showMap ? "Hide Map" : "Show Map"}
           </button>
@@ -233,10 +276,14 @@ export default function Resources() {
           <select
             value={sortField}
             onChange={handleSortChange}
-            className="p-2 border bg-transparent rounded"
+            className="p-2 border bg-transparent rounded-lg"
           >
-            <option className="text-black" value="neededBy">Needed By</option>
-            <option className="text-black" value="severity">Severity</option>
+            <option className="text-black" value="neededBy">
+              Needed By
+            </option>
+            <option className="text-black" value="severity">
+              Severity
+            </option>
           </select>
         </div>
       </div>
@@ -247,12 +294,12 @@ export default function Resources() {
         <p>Loading...</p>
       ) : (
         <>
-          {sortedResources?.length > 0 ? (
+          {sortedAndFilteredResources?.length > 0 ? (
             <div className="space-y-4 my-4">
-              {sortedResources?.map((resource) => (
+              {sortedAndFilteredResources?.map((resource) => (
                 <div
                   key={resource.id}
-                  className="p-4 dark:bg-slate-200 bg-slate-100 rounded shadow-md flex justify-between items-center"
+                  className="p-4 dark:bg-slate-200 bg-slate-100 rounded-lg shadow-md flex justify-between items-center"
                 >
                   <div>
                     <p className="text-lg font-semibold text-black dark:text-black">
@@ -263,8 +310,8 @@ export default function Resources() {
                       <span className="font-bold">Needed By: </span>
                       {resource.neededBy}
                     </p>
-                    <span className="ext-sm text-black">
-                      <span className="font-bold">category: </span>
+                    <span className="text-sm text-black">
+                      <span className="font-bold">Category: </span>
                       {resource.category},
                     </span>
                     <span className="ms-2 text-sm text-black">
@@ -285,7 +332,7 @@ export default function Resources() {
                   </div>
                   <div className="flex space-x-2">
                     <button
-                      className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700"
+                      className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-700"
                       onClick={() => handleDelete(resource.id)}
                     >
                       Delete

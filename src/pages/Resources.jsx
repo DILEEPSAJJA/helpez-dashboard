@@ -20,6 +20,8 @@ export default function Resources() {
   const mapRef = useRef(null);
   const mapsRef = useRef(null);
   const heatmapRef = useRef(null);
+  const [selectedResourceId, setSelectedResourceId] = useState("");
+  const [marker, setMarker] = useState(null);
 
   const fetchResources = async () => {
     setLoading(true);
@@ -44,6 +46,30 @@ export default function Resources() {
 
   const handleSortChange = (e) => {
     setSortField(e.target.value);
+  };
+
+  const handleResourceSelect = (e) => {
+    const id = e.target.value;
+    setSelectedResourceId(id);
+    const selected = resources.find(r => r.id === id);
+    if (selected && mapRef.current && mapsRef.current) {
+      const position = new mapsRef.current.LatLng(
+        selected.location.latitude,
+        selected.location.longitude
+      );
+      
+      if (marker) {
+        marker.setPosition(position);
+      } else {
+        const newMarker = new mapsRef.current.Marker({
+          position: position,
+          map: mapRef.current,
+        });
+        setMarker(newMarker);
+      }
+      
+      mapRef.current.panTo(position);
+    }
   };
 
   const filteredResources = resources.filter((resource) => {
@@ -88,20 +114,20 @@ export default function Resources() {
 
   const renderHeatmap = useCallback(() => {
     if (!mapRef.current || !mapsRef.current || !resources.length) return;
-
+  
     if (heatmapRef.current) {
       heatmapRef.current.setMap(null);
     }
-
+  
     const heatmapData = resources.map((resource) => ({
       location: new mapsRef.current.LatLng(
         resource.location.latitude,
         resource.location.longitude
       ),
       weight:
-        resource.severity === "High" ? 5 : resource.severity === "Low" ? 3 : 1,
+        resource.severity === "High" ? 5 : resource.severity === "Low" ? 1 : 3,
     }));
-
+  
     heatmapRef.current = new mapsRef.current.visualization.HeatmapLayer({
       data: heatmapData,
       map: mapRef.current,
@@ -109,10 +135,10 @@ export default function Resources() {
   }, [resources]);
 
   useEffect(() => {
-    if (showMap) {
+    if (showMap && mapRef.current && mapsRef.current) {
       renderHeatmap();
     }
-  }, [showMap, renderHeatmap]);
+  }, [showMap, renderHeatmap, resources]);
 
   const handleApiLoaded = ({ map, maps }) => {
     mapRef.current = map;
@@ -126,7 +152,21 @@ export default function Resources() {
 
   const renderMap = () => {
     return (
-      <div style={{ height: "500px", width: "100%" }}>
+      <div style={{ height: "500px", width: "100%", position: "relative" }}>
+        <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1, backgroundColor: "white", padding: "10px", borderRadius: "5px" }}>
+          <select 
+            value={selectedResourceId} 
+            onChange={handleResourceSelect}
+            className="p-2 border bg-white rounded text-black"
+          >
+            <option value="">Select a resource</option>
+            {resources.map(resource => (
+              <option key={resource.id} value={resource.id}>
+                {resource.requestTitle}
+              </option>
+            ))}
+          </select>
+        </div>
         <GoogleMapReact
           bootstrapURLKeys={{
             key: "AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc",
@@ -136,10 +176,21 @@ export default function Resources() {
           defaultZoom={16}
           yesIWantToUseGoogleMapApiInternals
           onGoogleApiLoaded={handleApiLoaded}
-        ></GoogleMapReact>
+        >
+          {/* No custom markers needed here */}
+        </GoogleMapReact>
       </div>
     );
   };
+
+  // Cleanup effect for marker
+  useEffect(() => {
+    return () => {
+      if (marker) {
+        marker.setMap(null);
+      }
+    };
+  }, [marker]);
 
   return (
     <div className="p-4">
@@ -153,18 +204,10 @@ export default function Resources() {
             onChange={handleFilterChange}
             className="p-2 border bg-transparent rounded"
           >
-            <option className="text-black" value="All">
-              All
-            </option>
-            <option className="text-black" value="Clothing">
-              Clothing
-            </option>
-            <option className="text-black" value="Technical">
-              Technical
-            </option>
-            <option className="text-black" value="Food">
-              Food
-            </option>
+            <option className="text-black" value="All">All</option>
+            <option className="text-black" value="Clothing">Clothing</option>
+            <option className="text-black" value="Technical">Technical</option>
+            <option className="text-black" value="Food">Food</option>
           </select>
           <label className="mr-2 ml-4">Severity:</label>
           <select
@@ -173,18 +216,10 @@ export default function Resources() {
             onChange={handleFilterChange}
             className="p-2 border bg-transparent rounded"
           >
-            <option className="text-black" value="All">
-              All
-            </option>
-            <option className="text-black" value="Low">
-              Low
-            </option>
-            <option className="text-black" value="Medium">
-              Medium
-            </option>
-            <option className="text-black" value="High">
-              High
-            </option>
+            <option className="text-black" value="All">All</option>
+            <option className="text-black" value="Low">Low</option>
+            <option className="text-black" value="Medium">Medium</option>
+            <option className="text-black" value="High">High</option>
           </select>
         </div>
         <div>
@@ -192,7 +227,7 @@ export default function Resources() {
             onClick={handleToggleMap}
             className="ml-4 px-4 py-2 mr-4 bg-blue-500 text-white rounded hover:bg-blue-700"
           >
-            {showMap ? "Hide HeatMap" : "Show HeatMap"}
+            {showMap ? "Hide Map" : "Show Map"}
           </button>
           <label className="mr-2">Sort by:</label>
           <select
@@ -200,12 +235,8 @@ export default function Resources() {
             onChange={handleSortChange}
             className="p-2 border bg-transparent rounded"
           >
-            <option className="text-black" value="neededBy">
-              Needed By
-            </option>
-            <option className="text-black" value="severity">
-              Severity
-            </option>
+            <option className="text-black" value="neededBy">Needed By</option>
+            <option className="text-black" value="severity">Severity</option>
           </select>
         </div>
       </div>
@@ -264,11 +295,9 @@ export default function Resources() {
               ))}
             </div>
           ) : (
-            <>
-              <div className="h-[50vh] flex items-center justify-center">
-                <p className="text-center text-gray-600">No resources found.</p>
-              </div>
-            </>
+            <div className="h-[50vh] flex items-center justify-center">
+              <p className="text-center text-gray-600">No resources found.</p>
+            </div>
           )}
         </>
       )}

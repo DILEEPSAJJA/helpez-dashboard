@@ -19,6 +19,7 @@ const AddOrganisation = () => {
       description,
       contact,
       address,
+      isAccepted: true,
     };
 
     try {

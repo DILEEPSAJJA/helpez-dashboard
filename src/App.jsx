@@ -9,13 +9,15 @@ import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
 import AddOrganization from "./pages/AddOrganisation";
 import Organisations from "./pages/Organisations";
+import OrganisationRequest from "./pages/OrganisationRequest";
 
 function App() {
   return (
     <>
-      <DefaultLayout>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/organisation" element={<OrganisationRequest />} />
+        <Route element={<DefaultLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/incidents" element={<Incidents />} />
           <Route path="/resources" element={<Resources />} />
@@ -26,8 +28,8 @@ function App() {
             path="/organisations/add-organisation"
             element={<AddOrganization />}
           />
-        </Routes>
-      </DefaultLayout>
+        </Route>
+      </Routes>
     </>
   );
 }

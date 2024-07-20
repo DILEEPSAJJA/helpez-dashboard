@@ -128,9 +128,9 @@ export default function Incidents() {
             incidents.map((incident) => (
               <div
                 key={incident.id}
-                className="p-4 bg-slate-100  rounded shadow-md flex justify-between items-center"
+                className="p-4 bg-slate-100  rounded shadow-md flex flex-wrap justify-between items-center"
               >
-                <div>
+                <div className="lg:w-[85%]">
                   <p className="text-lg font-semibold text-black dark:text-black">
                     {incident.title}
                   </p>

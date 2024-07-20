@@ -10,6 +10,7 @@ import Analytics from "./pages/Analytics";
 import AddOrganization from "./pages/AddOrganisation";
 import Organisations from "./pages/Organisations";
 import OrganisationRequest from "./pages/OrganisationRequest";
+import VolunteerLogin from "./pages/VolunteerLogin";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/organisation" element={<OrganisationRequest />} />
+        <Route path="/volunteer" element={<VolunteerLogin />} />
         <Route element={<DefaultLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/incidents" element={<Incidents />} />

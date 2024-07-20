@@ -16,17 +16,17 @@ export default function DefaultHeader() {
         <div className="flex flex-1 justify-end gap-8">
           <div className="flex items-center gap-9">
             <Link to="/volunteer">
-              <button className="text-white text-sm font-medium leading-normal">
+              <button className="text-white text-md font-medium leading-normal">
                 Volunteer
               </button>
             </Link>
             <Link to="/organisation">
-              <button className="text-white text-sm font-medium leading-normal">
+              <button className="text-white text-md font-medium leading-normal">
                 Organisation
               </button>
             </Link>
-            <Link to="admin">
-              <button className="text-white text-sm font-medium leading-normal">
+            <Link to="/admin">
+              <button className="text-white text-md font-medium leading-normal">
                 Admin
               </button>
             </Link>

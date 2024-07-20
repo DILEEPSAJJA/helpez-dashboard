@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { getFirestore, collection, addDoc } from "firebase/firestore";
-import app from "../utils/firebase";
+import app from "../../utils/firebase";
 import { useNavigate } from "react-router-dom";
 
 const AddOrganisation = () => {

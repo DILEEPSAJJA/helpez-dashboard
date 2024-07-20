@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import app from "../utils/firebase";
+import app from "../../utils/firebase";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-import IncidentDonut from "../components/charts/IncidentDonut";
-import RequestDonut from "../components/charts/RequestDonut";
+import IncidentDonut from "../../components/charts/IncidentDonut";
+import RequestDonut from "../../components/charts/RequestDonut";
 
 export default function Analytics() {
   const db = getFirestore(app);

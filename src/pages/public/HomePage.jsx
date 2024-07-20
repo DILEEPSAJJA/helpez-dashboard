@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import DefaultHeader from "../components/Header/DefaultHeader";
-import Hero from "../components/Hero";
+import DefaultHeader from "../../components/Header/DefaultHeader";
+import Hero from "../../components/Hero";
 export default function HomePage() {
   return (
     <>
@@ -10,7 +10,7 @@ export default function HomePage() {
         <div className="layout-container flex h-full grow flex-col">
           <div className="px-4 flex flex-1 justify-center py-5">
             <div className="layout-content-container flex flex-col max-w-[1160px] flex-1">
-              <div className="@container">
+              <div className="container">
                 <div>
                   <div
                     className="flex rounded-xl min-h-[480px] flex-col gap-6 bg-cover bg-center bg-no-repeat items-start justify-end px-5 pb-10"

@@ -7,7 +7,7 @@ import {
   updateDoc,
   deleteDoc,
 } from "firebase/firestore";
-import app from "../utils/firebase";
+import app from "../../utils/firebase";
 import { Link } from "react-router-dom";
 
 const Organisations = () => {
@@ -67,7 +67,7 @@ const Organisations = () => {
           >
             {viewRequests ? "Hide Requests" : "View Requests"}
           </button>
-          <Link to="/organisations/add-organisation">
+          <Link to="/admin/organisations/add-organisation">
             <button className="border p-2 rounded-lg dark:hover:bg-slate-700 hover:bg-slate-200">
               Add Organisation
             </button>

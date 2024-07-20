@@ -60,6 +60,56 @@ export default function Incidents() {
     setEditMode(false);
   };
 
+  const matchCategoryToRole = (category) => {
+    const roleMapping = {
+      Natural: ["Rescue Team Volunteer", "Logistics Coordinator", "Medical Team Volunteer"],
+      Accident: ["Rescue Team Volunteer", "Medical Team Volunteer", "Construction Crew Volunteer"],
+      Medical: ["Medical Team Volunteer"],
+      Environmental: ["Tech Support Volunteer", "Logistics Coordinator"],
+      Technological: ["Tech Support Volunteer", "Logistics Coordinator"],
+      Miscellaneous: ["Support Volunteer", "Logistics Coordinator"],
+    };
+  
+    return roleMapping[category] || ["Support Volunteer"];
+  };
+
+  const fetchSuitableVolunteers = async (category) => {
+    const roles = matchCategoryToRole(category);
+    const volunteersSnapshot = await getDocs(collection(db, "volunteers"));
+    return volunteersSnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(volunteer => roles.includes(volunteer.role));
+  };
+
+  const handleAssignTask = async (incident) => {
+    const suitableVolunteers = await fetchSuitableVolunteers(incident.category);
+    
+    // Update the incident document with suitable volunteers
+    const incidentRef = doc(db, "incidents", incident.id);
+    await updateDoc(incidentRef, {
+      suitableVolunteers: suitableVolunteers.map(v => ({
+        name: v.name,
+        role: v.role,
+        phoneNumber: v.phoneNumber
+      })
+    )
+    });
+
+    for (const volunteer of suitableVolunteers) {
+      const userRef = doc(db, "users", volunteer.id);
+      await updateDoc(userRef, {
+        isAssigned: true,
+        assignedIncident: {
+          id: incident.id,
+          title: incident.title
+        }
+      });
+    }
+  
+    // Refresh the incidents list
+    fetchIncidents();
+  };
+
   useEffect(() => {
     fetchIncidents();
   }, []);
@@ -92,6 +142,12 @@ export default function Incidents() {
                   </p>
                 </div>
                 <div className="flex space-x-2">
+                  <button
+                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700"
+                    onClick={() => handleAssignTask(incident)}
+                  >
+                    Assign Task
+                  </button>
                   <button
                     className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
                     onClick={() => handleEdit(incident)}

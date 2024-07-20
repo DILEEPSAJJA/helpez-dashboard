@@ -6,8 +6,10 @@ import {
   getFirestore,
   deleteDoc,
   doc,
+  updateDoc,
 } from "firebase/firestore";
 import GoogleMapReact from "google-map-react";
+import { toast } from "react-toastify";
 
 export default function Resources() {
   const db = getFirestore(app);
@@ -226,6 +228,20 @@ export default function Resources() {
     };
   }, [marker]);
 
+  const handleSendAlert = async (resourceId) => {
+    try {
+      await updateDoc(doc(db, "requests", resourceId), {
+        sendAlert: true,
+      });
+      // toast.success("Alert sent successfully");
+      console.log("Success alert in send");
+      fetchResources();
+    } catch (error) {
+      console.error("Error sending alert:", error);
+      toast.error("Error sending alert");
+    }
+  };
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Requests</h1>
@@ -332,10 +348,17 @@ export default function Resources() {
                   </div>
                   <div className="flex space-x-2">
                     <button
-                      className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-700"
+                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
                       onClick={() => handleDelete(resource.id)}
                     >
                       Delete
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
+                      onClick={() => handleSendAlert(resource.id)}
+                      disabled={resource.alertSent}
+                    >
+                      {resource.alertSent ? "Alert Sent" : "Send Alert"}
                     </button>
                   </div>
                 </div>

@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
 import AddOrganization from "./pages/AddOrganisation";
 import Organisations from "./pages/Organisations";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           />
         </Routes>
       </DefaultLayout>
+      <ToastContainer />
     </>
   );
 }

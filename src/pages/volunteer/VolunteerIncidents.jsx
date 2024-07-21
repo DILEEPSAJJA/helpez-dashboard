@@ -11,6 +11,10 @@ import {
 } from "firebase/firestore";
 import { useSelector } from "react-redux";
 import GoogleMapReact from "google-map-react";
+import Modal from "react-modal";
+import "../../styles/styles.css";
+
+Modal.setAppElement("#root");
 import { FaDirections } from "react-icons/fa";
 
 export default function VolunteerIncidents() {
@@ -18,6 +22,9 @@ export default function VolunteerIncidents() {
   const [loading, setLoading] = useState(false);
   const [incident, setIncident] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const mapRef = useRef(null);
   const mapsRef = useRef(null);
   const [marker, setMarker] = useState(null);
@@ -25,36 +32,72 @@ export default function VolunteerIncidents() {
 
   const fetchUserProfile = async (phoneNumber) => {
     setLoading(true);
-    const q = query(
-      collection(db, "users"),
-      where("phoneNumber", "==", phoneNumber)
-    );
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      const userData = querySnapshot.docs[0].data();
-      setUserProfile(userData);
-      fetchIncident(userData.assignedIncident.id);
-    } else {
-      console.log("No such user!");
+    try {
+      const q = query(
+        collection(db, "users"),
+        where("phoneNumber", "==", phoneNumber)
+      );
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const userData = querySnapshot.docs[0].data();
+        setUserProfile(userData);
+        fetchIncident(userData.assignedIncident.id);
+      } else {
+        console.log("No such user!");
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
     }
     setLoading(false);
   };
 
   const fetchIncident = async (incidentId) => {
-    const docRef = doc(db, "incidents", incidentId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      setIncident(data);
-      if (data.location) {
-        setMapCenter({
-          lat: data.location.latitude,
-          lng: data.location.longitude,
-        });
+    try {
+      const docRef = doc(db, "incidents", incidentId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const incidentData = docSnap.data();
+        setIncident(incidentData);
+        fetchTasks(incidentId);
+        if (incidentData.location) {
+          setMapCenter({
+            lat: incidentData.location.latitude,
+            lng: incidentData.location.longitude,
+          });
+        }
+      } else {
+        console.log("No such document!");
       }
-    } else {
-      console.log("No such document!");
+    } catch (error) {
+      console.error("Error fetching incident:", error);
     }
+  };
+
+  const fetchTasks = async (incidentId) => {
+    try {
+      const q = query(
+        collection(db, "tasks"),
+        where("incidentId", "==", incidentId)
+      );
+      const querySnapshot = await getDocs(q);
+      const tasksData = [];
+      querySnapshot.forEach((doc) => {
+        tasksData.push(doc.data());
+      });
+      setTasks(tasksData);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
+  const openModal = (image) => {
+    setSelectedImage(image);
+    setModalIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalIsOpen(false);
+    setSelectedImage(null);
   };
 
   useEffect(() => {
@@ -159,13 +202,30 @@ export default function VolunteerIncidents() {
                       key={index}
                       src={image}
                       alt={`incident image ${index}`}
-                      className="w-full h-auto rounded-lg"
+                      className="w-full h-auto rounded-lg cursor-pointer"
+                      onClick={() => openModal(image)}
                     />
                   ))}
                 </div>
               </div>
             </div>
           </div>
+          <div className="mt-8">
+            <h2 className="text-xl font-bold mb-4">Assigned Tasks</h2>
+            <ul>
+              {tasks.map((task, index) => (
+                <li key={index} className="p-4 bg-white rounded shadow mb-4">
+                  <h3 className="font-bold">{task.title}</h3>
+                  <p>{task.description}</p>
+                  <p><strong>Status:</strong> {task.status}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <Modal isOpen={modalIsOpen} onRequestClose={closeModal} contentLabel="Image Modal" className="modal" overlayClassName="overlay">
+            <button onClick={closeModal} className="modal-close-button">Close</button>
+            <img src={selectedImage} alt="Selected Incident" className="modal-image" />
+          </Modal>
         </>
       ) : (
         <div>

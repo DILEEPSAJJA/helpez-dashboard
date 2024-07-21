@@ -136,7 +136,7 @@ export default function Incidents() {
           {incidents.map((incident) => (
             <div
               key={incident.id}
-              className="p-4 bg-slate-100 rounded shadow-md flex flex-wrap justify-between items-center"
+              className="p-4 bg-slate-100 rounded-xl shadow-md flex flex-wrap justify-between items-center"
             >
               <div className="lg:w-[85%]">
                 <p className="text-lg font-semibold text-black dark:text-black">
@@ -149,21 +149,21 @@ export default function Incidents() {
                   {incident.description}
                 </p>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 pt-4">
                 <button
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700"
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700"
                   onClick={() => handleOpenAssignPopover(incident)}
                 >
                   Assign Task
                 </button>
                 <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
                   onClick={() => handleEdit(incident)}
                 >
                   Edit
                 </button>
                 <button
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700"
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
                   onClick={() => handleDelete(incident.id)}
                 >
                   Delete
@@ -175,11 +175,11 @@ export default function Incidents() {
       )}
 
       {editMode && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-xl">
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center text-black">
+          <div className="bg-white p-6 rounded-xl shadow-xl">
             <h2 className="text-xl font-bold mb-4">Edit Incident</h2>
             <input
-              className="w-full p-2 mb-4 border rounded"
+              className="w-full p-2 mb-4 border rounded-lg"
               type="text"
               value={editIncident.title}
               onChange={(e) =>
@@ -188,7 +188,7 @@ export default function Incidents() {
               placeholder="Title"
             />
             <input
-              className="w-full p-2 mb-4 border rounded"
+              className="w-full p-2 mb-4 border rounded-lg"
               type="date"
               value={editIncident.date}
               onChange={(e) =>
@@ -196,7 +196,7 @@ export default function Incidents() {
               }
             />
             <textarea
-              className="w-full p-2 mb-4 border rounded"
+              className="w-full p-2 mb-4 border rounded-lg"
               value={editIncident.description}
               onChange={(e) =>
                 setEditIncident({
@@ -208,13 +208,13 @@ export default function Incidents() {
             />
             <div className="flex justify-end space-x-2">
               <button
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700"
+                className="px-4 py-2 bg-green-500 text-white rounded-full hover:bg-green-700"
                 onClick={handleSave}
               >
                 Save
               </button>
               <button
-                className="px-4 py-2 bg-slate-300 text-black rounded hover:bg-slate-500"
+                className="px-4 py-2 bg-slate-500 text-white rounded-full hover:bg-red-500"
                 onClick={handleCancel}
               >
                 Cancel
@@ -226,12 +226,12 @@ export default function Incidents() {
 
       {showAssignPopover && selectedIncident && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-xl">
-            <h2 className="text-xl font-bold mb-4">Assign Members</h2>
+          <div className="bg-white p-6 rounded-xl shadow-xl">
+            <h2 className="text-xl font-bold mb-4 text-black">Assign Members</h2>
             <div className="max-h-60 overflow-y-auto">
               {members.length > 0 ? (
                 members.map((member) => (
-                  <div key={member.id} className="flex items-center mb-2">
+                  <div key={member.id} className="flex items-center mb-2 text-black">
                     <input
                       type="checkbox"
                       id={`member-${member.id}`}
@@ -250,7 +250,7 @@ export default function Incidents() {
             </div>
             <div className="mt-4 flex justify-end space-x-2">
               <button
-                className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+                className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600"
                 onClick={() => setShowAssignPopover(false)}
               >
                 Close

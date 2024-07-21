@@ -90,7 +90,7 @@ export default function Members() {
       <h1 className="text-2xl font-bold mb-4">Team Members</h1>
       <input
         type="text"
-        className="p-2 mb-4 w-full border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+        className="p-2 mb-4 w-full border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
         placeholder="Search by name"
         value={filter}
         onChange={handleFilterChange}
@@ -102,7 +102,7 @@ export default function Members() {
           {filteredMembers.map((member) => (
             <div
               key={member.id}
-              className="p-4 bg-slate-100 dark:bg-gray-800 rounded shadow-md flex justify-between items-center"
+              className="p-4 bg-slate-100 dark:bg-gray-800 rounded-lg shadow-md flex justify-between items-center"
             >
               <div>
                 <p className="text-lg font-semibold text-black">
@@ -126,13 +126,13 @@ export default function Members() {
               </div>
               <div className="flex space-x-2">
                 <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
                   onClick={() => handleEdit(member)}
                 >
                   Edit
                 </button>
                 <button
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700"
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
                   onClick={() => handleDelete(member.id)}
                 >
                   Delete
@@ -145,10 +145,10 @@ export default function Members() {
 
       {editMode && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-1/3">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md w-1/3">
             <h2 className="text-xl font-bold mb-4">Edit Member</h2>
             <input
-              className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              className="w-full p-2 mb-4 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               type="text"
               value={editMember.name}
               onChange={(e) =>
@@ -157,7 +157,7 @@ export default function Members() {
               placeholder="Name"
             />
             <input
-              className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              className="w-full p-2 mb-4 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               type="text"
               value={editMember.age}
               onChange={(e) =>
@@ -166,7 +166,7 @@ export default function Members() {
               placeholder="Age"
             />
             <input
-              className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              className="w-full p-2 mb-4 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               type="text"
               value={editMember.location}
               onChange={(e) =>
@@ -175,7 +175,7 @@ export default function Members() {
               placeholder="Location"
             />
             <input
-              className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              className="w-full p-2 mb-4 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               type="text"
               value={editMember.phoneNumber}
               onChange={(e) =>
@@ -184,7 +184,7 @@ export default function Members() {
               placeholder="Phone Number"
             />
             <input
-              className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              className="w-full p-2 mb-4 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               type="text"
               value={editMember.role}
               onChange={(e) =>
@@ -193,7 +193,7 @@ export default function Members() {
               placeholder="Role"
             />
             <textarea
-              className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              className="w-full p-2 mb-4 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               value={editMember.skills}
               onChange={(e) =>
                 setEditMember({ ...editMember, skills: e.target.value })
@@ -202,13 +202,13 @@ export default function Members() {
             />
             <div className="flex justify-end space-x-2">
               <button
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700"
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700"
                 onClick={handleSave}
               >
                 Save
               </button>
               <button
-                className="px-4 py-2 bg-slate-300 text-black rounded hover:bg-slate-500"
+                className="px-4 py-2 bg-slate-300 text-black rounded-lg hover:bg-slate-500"
                 onClick={() => setEditMode(false)}
               >
                 Cancel

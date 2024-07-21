@@ -112,7 +112,15 @@ function App() {
             </ProtectedVolunteerRoute>
           }
         />
-        <Route path="/admin/tasks" element={<TaskManagementPage />} />
+        <Route
+          path="/admin/tasks"
+          element={
+            <ProtectedAdminRoute>
+              <TaskManagementPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        {/* <Route path="/admin/tasks" element={<TaskManagementPage />} /> */}
 
         <Route path="*" element={<NotFound />} />
       </Routes>

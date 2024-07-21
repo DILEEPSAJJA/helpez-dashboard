@@ -249,6 +249,26 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                   Organisations
                 </Link>
               </li>
+              <li>
+  <Link
+    to="/admin/tasks"
+    className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+      pathname.includes("tasks") && "bg-graydark dark:bg-meta-4"
+    }`}
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      height="24px"
+      viewBox="0 -960 960 960"
+      width="24px"
+      fill="#e8eaed"
+    >
+      <path d="M..."/>
+    </svg>
+    Tasks
+  </Link>
+</li>
+
             </ul>
           </div>
         </nav>

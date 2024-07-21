@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { getFirestore, collection, addDoc } from "firebase/firestore";
-import app from "../utils/firebase";
+import app from "../../utils/firebase";
 import { useNavigate } from "react-router-dom";
-import DefaultHeader from "../components/Header/DefaultHeader";
+import DefaultHeader from "../../components/Header/DefaultHeader";
+import { toast } from "react-toastify";
+
 
 const OrganisationRequest = () => {
   const navigate = useNavigate();
@@ -25,11 +27,11 @@ const OrganisationRequest = () => {
 
     try {
       await addDoc(collection(db, "organisations"), newOrg);
-      alert("Request sent successfully!");
+      toast.success("Request sent successfully!");
       navigate("/");
     } catch (error) {
       console.error("Error sending request: ", error);
-      alert("Failed to add request.");
+      toast.error("Failed to add request..");
     }
   };
 
@@ -102,7 +104,7 @@ const OrganisationRequest = () => {
                 ></textarea>
               </div>
               <div className="flex justify-center">
-                <button className="bg-[#1980e6] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#146abf] transition duration-300">
+                <button className="bg-[#1980e6] text-white px-24 py-3 rounded-lg font-bold hover:bg-[#146abf] transition duration-300 ease-in-out shadow-lg transform hover:scale-105">
                   Submit
                 </button>
               </div>

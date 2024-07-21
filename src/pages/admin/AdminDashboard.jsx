@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-import app from "../utils/firebase";
-import IncidentDonut from "../components/charts/IncidentDonut";
-import UsersCard from "../components/cards/UsersCard";
-import IncidentsCard from "../components/cards/IncidentsCard";
-import RequestsCard from "../components/cards/RequestsCard";
-import DonationsCard from "../components/cards/DonationsCard";
+import app from "../../utils/firebase";
+import IncidentDonut from "../../components/charts/IncidentDonut";
+import UsersCard from "../../components/cards/UsersCard";
+import IncidentsCard from "../../components/cards/IncidentsCard";
+import RequestsCard from "../../components/cards/RequestsCard";
+import DonationsCard from "../../components/cards/DonationsCard";
 
-export default function Dashboard() {
+export default function AdminDashboard() {
   const db = getFirestore(app);
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState(null);
@@ -38,7 +38,7 @@ export default function Dashboard() {
         </>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 mb-5 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+          <div className="grid grid-cols-1 gap-4 my-5 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
             <UsersCard users={users} />
             <IncidentsCard incidents={incidents} />
             <RequestsCard requests={requests} />

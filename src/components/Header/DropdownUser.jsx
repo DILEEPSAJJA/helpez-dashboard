@@ -1,11 +1,24 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import ClickOutside from "../ClickOutside";
 import UserOne from "../../assets/logo.png";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "../../redux/users";
 
 const DropdownUser = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
+  const { user } = useSelector((state) => state.user);
+  const [type, setType] = useState("");
+  useEffect(() => {
+    if (user.isAdmin) setType("admin");
+    else if (user.isVolunteer) setType("volunteer");
+  }, [user]);
+  const handleLogout = () => {
+    dispatch(setUser(null));
+    navigate("/");
+  };
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
       <Link
@@ -15,9 +28,8 @@ const DropdownUser = () => {
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
-            Suraj Thammi
+            {type === "volunteer" ? user?.name : "HelpEZ Admin"}
           </span>
-          <span className="block text-xs">HelpEZ Admin</span>
         </span>
 
         <span className="h-12 w-12 rounded-full">
@@ -73,7 +85,10 @@ const DropdownUser = () => {
               </Link>
             </li>
           </ul>
-          <button className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-blue-400 lg:text-base">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-blue-400 lg:text-base"
+          >
             <svg
               className="fill-current"
               width="22"

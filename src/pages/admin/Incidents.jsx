@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import app from "../utils/firebase";
+import app from "../../utils/firebase";
 import {
   collection,
   getDocs,
@@ -67,17 +67,19 @@ export default function Incidents() {
 
   const handleOpenAssignPopover = async (incident) => {
     setSelectedIncident(incident);
-    
+
     // Fetch members (users with isMember: true)
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("isMember", "==", true));
     const querySnapshot = await getDocs(q);
-    const membersData = querySnapshot.docs.map(doc => ({
+    const membersData = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-      isAssigned: incident.suitableVolunteers?.some(v => v.phoneNumber === doc.id) || false
+      isAssigned:
+        incident.suitableVolunteers?.some((v) => v.phoneNumber === doc.id) ||
+        false,
     }));
-    
+
     setMembers(membersData);
     setShowAssignPopover(true);
   };
@@ -90,21 +92,28 @@ export default function Incidents() {
     // Update user document
     await updateDoc(userRef, {
       isAssigned: newAssignedStatus,
-      assignedIncident: newAssignedStatus ? { id: selectedIncident.id, title: selectedIncident.title } : null
+      assignedIncident: newAssignedStatus
+        ? { id: selectedIncident.id, title: selectedIncident.title }
+        : null,
     });
 
     // Update incident document
     const updatedSuitableVolunteers = newAssignedStatus
-      ? [...(selectedIncident.suitableVolunteers || []), { name: member.name, phoneNumber: member.id, role: member.role }]
-      : (selectedIncident.suitableVolunteers || []).filter(v => v.phoneNumber !== member.id);
+      ? [
+          ...(selectedIncident.suitableVolunteers || []),
+          { name: member.name, phoneNumber: member.id, role: member.role },
+        ]
+      : (selectedIncident.suitableVolunteers || []).filter(
+          (v) => v.phoneNumber !== member.id
+        );
 
     await updateDoc(incidentRef, {
-      suitableVolunteers: updatedSuitableVolunteers
+      suitableVolunteers: updatedSuitableVolunteers,
     });
 
     // Update local state
-    setMembers(prevMembers => 
-      prevMembers.map(m => 
+    setMembers((prevMembers) =>
+      prevMembers.map((m) =>
         m.id === member.id ? { ...m, isAssigned: newAssignedStatus } : m
       )
     );

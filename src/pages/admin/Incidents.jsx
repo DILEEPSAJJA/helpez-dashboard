@@ -93,7 +93,10 @@ export default function Incidents() {
     await updateDoc(userRef, {
       isAssigned: newAssignedStatus,
       assignedIncident: newAssignedStatus
-        ? { id: selectedIncident.id, title: selectedIncident.title }
+        ? { id: selectedIncident.id,
+           title: selectedIncident.title,
+          category: selectedIncident.category,
+            description: selectedIncident.description }
         : null,
     });
 

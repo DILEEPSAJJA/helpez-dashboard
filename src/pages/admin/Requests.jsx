@@ -7,6 +7,8 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 import GoogleMapReact from "google-map-react";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +29,10 @@ export default function Resources() {
   const [selectedResourceId, setSelectedResourceId] = useState("");
   const [marker, setMarker] = useState(null);
   const [uniqueCategories, setUniqueCategories] = useState(["All"]);
+  const [warehouses, setWarehouses] = useState([]);
+  const [selectedWarehouse, setSelectedWarehouse] = useState("");
+
+  const statusOptions = ["Started", "Dispatched", "Nearby", "Out for Delivery"];
 
   const fetchResources = async () => {
     setLoading(true);
@@ -45,6 +51,15 @@ export default function Resources() {
     setUniqueCategories(categories);
 
     setLoading(false);
+  };
+
+  const fetchWarehouses = async () => {
+    const warehouseSnapshot = await getDocs(collection(db, "warehouse"));
+    const warehouseData = warehouseSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setWarehouses(warehouseData);
   };
 
   const handleDelete = async (id) => {
@@ -110,6 +125,7 @@ export default function Resources() {
 
   useEffect(() => {
     fetchResources();
+    fetchWarehouses();
   }, []);
 
   useEffect(() => {
@@ -192,13 +208,26 @@ export default function Resources() {
           <select
             value={selectedResourceId}
             onChange={handleResourceSelect}
-            className="p-2 border rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 border rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
             style={{ backgroundColor: "transparent" }}
           >
             <option value="">Select a resource</option>
             {sortedAndFilteredResources.map((resource) => (
               <option key={resource.id} value={resource.id}>
                 {resource.requestTitle}
+              </option>
+            ))}
+          </select>
+          <select
+            value={selectedWarehouse}
+            onChange={(e) => setSelectedWarehouse(e.target.value)}
+            className="p-2 border rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+            style={{ backgroundColor: "transparent" }}
+          >
+            <option value="">Select a warehouse</option>
+            {warehouses.map((warehouse) => (
+              <option key={warehouse.id} value={warehouse.id}>
+                {warehouse.name}
               </option>
             ))}
           </select>
@@ -239,12 +268,55 @@ export default function Resources() {
       await updateDoc(doc(db, "requests", resourceId), {
         sendAlert: true,
       });
-      // toast.success("Alert sent successfully");
       console.log("Success alert in send");
       fetchResources();
     } catch (error) {
       console.error("Error sending alert:", error);
       toast.error("Error sending alert");
+    }
+  };
+
+  const handleAssignWarehouse = async (resourceId, warehouseId) => {
+    try {
+      const resourceRef = doc(db, "requests", resourceId);
+      const warehouseRef = doc(db, "warehouse", warehouseId);
+      const warehouseData = warehouses.find((w) => w.id === warehouseId);
+      const resourceData = resources.find((r) => r.id === resourceId);
+      console.log(resourceData.requestTitle+"\n"+warehouseData.name);
+
+      // Update request document
+      await updateDoc(resourceRef, {
+        warehouseId: warehouseId,
+        warehouseName: warehouseData.name,
+        warehouseLocation: warehouseData.location,
+      });
+
+      // Update warehouse document
+      await updateDoc(warehouseRef, {
+        requests: arrayUnion({
+          id: resourceId,
+          title: resourceData.requestTitle,
+          location: resourceData.location,
+        }),
+      });
+
+      toast.success("Warehouse assigned successfully");
+      fetchResources();
+    } catch (error) {
+      console.error("Error assigning warehouse:", error);
+      toast.error("Error assigning warehouse");
+    }
+  };
+
+  const handleStatusUpdate = async (resourceId, newStatus) => {
+    try {
+      const resourceRef = doc(db, "requests", resourceId);
+      await updateDoc(resourceRef, { status: newStatus });
+      toast.success("Status updated successfully");
+      fetchResources();
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Error updating status");
     }
   };
 
@@ -334,6 +406,7 @@ export default function Resources() {
                   className="p-4 dark:bg-slate-200 bg-slate-100 rounded-lg shadow-md flex justify-between items-center"
                 >
                   <div>
+                  <div>
                     <p className="text-lg font-semibold text-black dark:text-black">
                       {resource.requestTitle}
                     </p>
@@ -354,6 +427,15 @@ export default function Resources() {
                       <span className="font-bold">Location:</span>
                       {` Lat: ${resource.location.latitude}, Long: ${resource.location.longitude}`}
                     </p>
+                  </div>
+                    <p className="text-sm text-black pt-2">
+                      <span className="font-bold">Warehouse: </span>
+                      {resource.warehouseName || "Not assigned"}
+                    </p>
+                    <p className="text-sm text-black">
+                      <span className="font-bold">Status: </span>
+                      {resource.status || "Not set"}
+                    </p>
                     <p
                       className={`text-sm font-semibold ${getSeverityColor(
                         resource.severity
@@ -362,7 +444,35 @@ export default function Resources() {
                       Severity: {resource.severity}
                     </p>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col space-y-2">
+                    <select
+                      value={selectedWarehouse}
+                      onChange={(e) =>
+                        handleAssignWarehouse(resource.id, e.target.value)
+                      }
+                      className="p-2 border bg-transparent rounded-lg text-black"
+                    >
+                      <option value="">Assign Warehouse</option>
+                      {warehouses.map((warehouse) => (
+                        <option key={warehouse.id} value={warehouse.id}>
+                          {warehouse.name}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={resource.status || ""}
+                      onChange={(e) =>
+                        handleStatusUpdate(resource.id, e.target.value)
+                      }
+                      className="p-2 border bg-transparent rounded-lg text-black"
+                    >
+                      <option value="">Set Status</option>
+                      {statusOptions.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
                     <button
                       className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
                       onClick={() => handleDelete(resource.id)}

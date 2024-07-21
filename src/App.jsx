@@ -16,6 +16,7 @@ import Analytics from "./pages/admin/Analytics";
 import Organisations from "./pages/admin/Organisations";
 import AddOrganization from "./pages/admin/AddOrganisation";
 import NotFound from "./pages/NotFound";
+import TaskManagementPage from "./pages/admin/TaskManagementPage";
 
 import ProtectedAdminRoute from "./auth/ProtectedAdminRoute";
 import ProtectedVolunteerRoute from "./auth/ProtectedVolunteerRoute";
@@ -111,6 +112,8 @@ function App() {
             </ProtectedVolunteerRoute>
           }
         />
+        <Route path="/admin/tasks" element={<TaskManagementPage />} />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

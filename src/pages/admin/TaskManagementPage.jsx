@@ -46,7 +46,9 @@ export default function TaskManagementPage() {
     const fetchData = async () => {
       try {
         const userSnapshot = await getDocs(collection(db, "users"));
-        const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const userList = userSnapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(user => user.assignedIncident);
         setUsers(userList);
 
         const taskSnapshot = await getDocs(collection(db, "tasks"));
@@ -61,21 +63,20 @@ export default function TaskManagementPage() {
   }, [db]);
 
   const handleAddTask = async () => {
-    if (!selectedUserId || !selectedCategory || !selectedTitle) {
+    if (!selectedUserId || !selectedTitle || !taskDescription) {
       alert("Please complete all fields.");
       return;
     }
 
     const selectedUser = users.find(user => user.id === selectedUserId);
-    const selectedTaskTemplate = taskTemplates[selectedCategory].find(task => task.title === selectedTitle);
-    if (!selectedUser || !selectedTaskTemplate) {
-      alert("Selected user or task template not found.");
+    if (!selectedUser) {
+      alert("Selected user not found.");
       return;
     }
 
     const task = {
       title: selectedTitle,
-      description: selectedTaskTemplate.description,
+      description: taskDescription,
       userId: selectedUserId,
       userName: selectedUser.name,
       status: "Pending",
@@ -141,7 +142,11 @@ export default function TaskManagementPage() {
         </select>
         <select
           value={selectedTitle || ""}
-          onChange={(e) => setSelectedTitle(e.target.value)}
+          onChange={(e) => {
+            setSelectedTitle(e.target.value);
+            const selectedTask = taskTemplates[selectedCategory].find(task => task.title === e.target.value);
+            setTaskDescription(selectedTask ? selectedTask.description : "");
+          }}
           className="border p-2 rounded mb-2 w-full"
         >
           <option value="" disabled>Select Title</option>
@@ -151,9 +156,17 @@ export default function TaskManagementPage() {
             </option>
           ))}
         </select>
+        <input
+          type="text"
+          value={selectedTitle}
+          onChange={(e) => setSelectedTitle(e.target.value)}
+          placeholder="Enter custom title"
+          className="border p-2 rounded mb-2 w-full"
+        />
         <textarea
-          value={selectedTitle ? taskTemplates[selectedCategory].find(task => task.title === selectedTitle)?.description : ""}
-          readOnly
+          value={taskDescription}
+          onChange={(e) => setTaskDescription(e.target.value)}
+          placeholder="Enter task description"
           className="border p-2 rounded mb-2 w-full"
         />
         <button

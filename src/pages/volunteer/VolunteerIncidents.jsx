@@ -13,9 +13,9 @@ import { useSelector } from "react-redux";
 import GoogleMapReact from "google-map-react";
 import Modal from "react-modal";
 import "../../styles/styles.css";
+import { FaDirections } from "react-icons/fa";
 
 Modal.setAppElement("#root");
-import { FaDirections } from "react-icons/fa";
 
 export default function VolunteerIncidents() {
   const db = getFirestore(app);
@@ -41,7 +41,10 @@ export default function VolunteerIncidents() {
       if (!querySnapshot.empty) {
         const userData = querySnapshot.docs[0].data();
         setUserProfile(userData);
-        fetchIncident(userData.assignedIncident.id);
+        if (userData.assignedIncident?.id) {
+          fetchIncident(userData.assignedIncident.id);
+        }
+        fetchTasks(phoneNumber); // Ensure this is the correct phone number field
       } else {
         console.log("No such user!");
       }
@@ -50,7 +53,7 @@ export default function VolunteerIncidents() {
     }
     setLoading(false);
   };
-
+  
   const fetchIncident = async (incidentId) => {
     try {
       const docRef = doc(db, "incidents", incidentId);
@@ -58,7 +61,6 @@ export default function VolunteerIncidents() {
       if (docSnap.exists()) {
         const incidentData = docSnap.data();
         setIncident(incidentData);
-        fetchTasks(incidentId);
         if (incidentData.location) {
           setMapCenter({
             lat: incidentData.location.latitude,
@@ -73,17 +75,14 @@ export default function VolunteerIncidents() {
     }
   };
 
-  const fetchTasks = async (incidentId) => {
+  const fetchTasks = async (phoneNumber) => {
     try {
       const q = query(
         collection(db, "tasks"),
-        where("incidentId", "==", incidentId)
+        where("phoneNumber", "==", phoneNumber) // Ensure this field exists in your tasks collection
       );
       const querySnapshot = await getDocs(q);
-      const tasksData = [];
-      querySnapshot.forEach((doc) => {
-        tasksData.push(doc.data());
-      });
+      const tasksData = querySnapshot.docs.map(doc => doc.data());
       setTasks(tasksData);
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -156,7 +155,7 @@ export default function VolunteerIncidents() {
                 <div style={{ height: "400px", width: "100%" }}>
                   <GoogleMapReact
                     bootstrapURLKeys={{
-                      key: "AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc",
+                      key: "YOUR_API_KEY",
                       libraries: ["visualization"],
                     }}
                     defaultCenter={{

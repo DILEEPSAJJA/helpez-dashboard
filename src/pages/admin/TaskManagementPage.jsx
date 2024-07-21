@@ -80,6 +80,7 @@ export default function TaskManagementPage() {
       userId: selectedUserId,
       userName: selectedUser.name,
       status: "Pending",
+      phoneNumber: selectedUser.phoneNumber,
     };
 
     try {

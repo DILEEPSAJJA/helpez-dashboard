@@ -7,12 +7,14 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  query,
+  where,
 } from "firebase/firestore";
 
 export default function Incidents() {
   const db = getFirestore(app);
   const [loading, setLoading] = useState(false);
-  const [incidents, setIncidents] = useState(null);
+  const [incidents, setIncidents] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [editIncident, setEditIncident] = useState({
     id: "",
@@ -20,6 +22,9 @@ export default function Incidents() {
     description: "",
     date: "",
   });
+  const [showAssignPopover, setShowAssignPopover] = useState(false);
+  const [selectedIncident, setSelectedIncident] = useState(null);
+  const [members, setMembers] = useState([]);
 
   const fetchIncidents = async () => {
     setLoading(true);
@@ -60,53 +65,51 @@ export default function Incidents() {
     setEditMode(false);
   };
 
-  const matchCategoryToRole = (category) => {
-    const roleMapping = {
-      Natural: ["Rescue Team Volunteer", "Logistics Coordinator", "Medical Team Volunteer"],
-      Accident: ["Rescue Team Volunteer", "Medical Team Volunteer", "Construction Crew Volunteer"],
-      Medical: ["Medical Team Volunteer"],
-      Environmental: ["Tech Support Volunteer", "Logistics Coordinator"],
-      Technological: ["Tech Support Volunteer", "Logistics Coordinator"],
-      Miscellaneous: ["Support Volunteer", "Logistics Coordinator"],
-    };
-  
-    return roleMapping[category] || ["Support Volunteer"];
-  };
-
-  const fetchSuitableVolunteers = async (category) => {
-    const roles = matchCategoryToRole(category);
-    const volunteersSnapshot = await getDocs(collection(db, "volunteers"));
-    return volunteersSnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter(volunteer => roles.includes(volunteer.role));
-  };
-
-  const handleAssignTask = async (incident) => {
-    const suitableVolunteers = await fetchSuitableVolunteers(incident.category);
+  const handleOpenAssignPopover = async (incident) => {
+    setSelectedIncident(incident);
     
-    // Update the incident document with suitable volunteers
-    const incidentRef = doc(db, "incidents", incident.id);
-    await updateDoc(incidentRef, {
-      suitableVolunteers: suitableVolunteers.map(v => ({
-        name: v.name,
-        role: v.role,
-        phoneNumber: v.phoneNumber
-      })
-    )
+    // Fetch members (users with isMember: true)
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("isMember", "==", true));
+    const querySnapshot = await getDocs(q);
+    const membersData = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      isAssigned: incident.suitableVolunteers?.some(v => v.phoneNumber === doc.id) || false
+    }));
+    
+    setMembers(membersData);
+    setShowAssignPopover(true);
+  };
+
+  const handleAssignVolunteer = async (member) => {
+    const userRef = doc(db, "users", member.id);
+    const incidentRef = doc(db, "incidents", selectedIncident.id);
+    const newAssignedStatus = !member.isAssigned;
+
+    // Update user document
+    await updateDoc(userRef, {
+      isAssigned: newAssignedStatus,
+      assignedIncident: newAssignedStatus ? { id: selectedIncident.id, title: selectedIncident.title } : null
     });
 
-    for (const volunteer of suitableVolunteers) {
-      const userRef = doc(db, "users", volunteer.id);
-      await updateDoc(userRef, {
-        isAssigned: true,
-        assignedIncident: {
-          id: incident.id,
-          title: incident.title
-        }
-      });
-    }
-  
-    // Refresh the incidents list
+    // Update incident document
+    const updatedSuitableVolunteers = newAssignedStatus
+      ? [...(selectedIncident.suitableVolunteers || []), { name: member.name, phoneNumber: member.id, role: member.role }]
+      : (selectedIncident.suitableVolunteers || []).filter(v => v.phoneNumber !== member.id);
+
+    await updateDoc(incidentRef, {
+      suitableVolunteers: updatedSuitableVolunteers
+    });
+
+    // Update local state
+    setMembers(prevMembers => 
+      prevMembers.map(m => 
+        m.id === member.id ? { ...m, isAssigned: newAssignedStatus } : m
+      )
+    );
+
+    // Refresh incidents
     fetchIncidents();
   };
 
@@ -120,61 +123,54 @@ export default function Incidents() {
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <div
-          style={editMode ? { opacity: 0.2 } : { opacity: 1 }}
-          className="space-y-4"
-        >
-          {incidents &&
-            incidents.map((incident) => (
-              <div
-                key={incident.id}
-                className="p-4 bg-slate-100  rounded shadow-md flex flex-wrap justify-between items-center"
-              >
-                <div className="lg:w-[85%]">
-                  <p className="text-lg font-semibold text-black dark:text-black">
-                    {incident.title}
-                  </p>
-                  <p className="text-sm text-bodydark2 dark:text-gray-400">
-                    {incident.date}
-                  </p>
-                  <p className="text-black dark:text-gray-200">
-                    {incident.description}
-                  </p>
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700"
-                    onClick={() => handleAssignTask(incident)}
-                  >
-                    Assign Task
-                  </button>
-                  <button
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
-                    onClick={() => handleEdit(incident)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700"
-                    onClick={() => handleDelete(incident.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
+        <div className="space-y-4">
+          {incidents.map((incident) => (
+            <div
+              key={incident.id}
+              className="p-4 bg-slate-100 rounded shadow-md flex flex-wrap justify-between items-center"
+            >
+              <div className="lg:w-[85%]">
+                <p className="text-lg font-semibold text-black dark:text-black">
+                  {incident.title}
+                </p>
+                <p className="text-sm text-bodydark2 dark:text-gray-400">
+                  {incident.date}
+                </p>
+                <p className="text-black dark:text-gray-200">
+                  {incident.description}
+                </p>
               </div>
-            ))}
+              <div className="flex space-x-2">
+                <button
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700"
+                  onClick={() => handleOpenAssignPopover(incident)}
+                >
+                  Assign Task
+                </button>
+                <button
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                  onClick={() => handleEdit(incident)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700"
+                  onClick={() => handleDelete(incident.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {editMode && (
-        <div
-          className="fixed inset-0 bg-gray-500 opacity-100 text-black flex justify-center items-center"
-          style={{ transition: "opacity 0.3s ease" }}
-        >
-          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-1/3">
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-xl">
             <h2 className="text-xl font-bold mb-4">Edit Incident</h2>
             <input
-              className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              className="w-full p-2 mb-4 border rounded"
               type="text"
               value={editIncident.title}
               onChange={(e) =>
@@ -183,7 +179,7 @@ export default function Incidents() {
               placeholder="Title"
             />
             <input
-              className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              className="w-full p-2 mb-4 border rounded"
               type="date"
               value={editIncident.date}
               onChange={(e) =>
@@ -191,7 +187,7 @@ export default function Incidents() {
               }
             />
             <textarea
-              className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              className="w-full p-2 mb-4 border rounded"
               value={editIncident.description}
               onChange={(e) =>
                 setEditIncident({
@@ -213,6 +209,42 @@ export default function Incidents() {
                 onClick={handleCancel}
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAssignPopover && selectedIncident && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-xl">
+            <h2 className="text-xl font-bold mb-4">Assign Members</h2>
+            <div className="max-h-60 overflow-y-auto">
+              {members.length > 0 ? (
+                members.map((member) => (
+                  <div key={member.id} className="flex items-center mb-2">
+                    <input
+                      type="checkbox"
+                      id={`member-${member.id}`}
+                      checked={member.isAssigned}
+                      onChange={() => handleAssignVolunteer(member)}
+                      className="mr-2"
+                    />
+                    <label htmlFor={`member-${member.id}`}>
+                      {member.name} - {member.role}
+                    </label>
+                  </div>
+                ))
+              ) : (
+                <p>No suitable members available for this incident.</p>
+              )}
+            </div>
+            <div className="mt-4 flex justify-end space-x-2">
+              <button
+                className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+                onClick={() => setShowAssignPopover(false)}
+              >
+                Close
               </button>
             </div>
           </div>

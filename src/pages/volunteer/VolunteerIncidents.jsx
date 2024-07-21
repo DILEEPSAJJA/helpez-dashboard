@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import app from "../../utils/firebase";
 import {
   collection,
@@ -15,6 +15,7 @@ import Modal from "react-modal";
 import "../../styles/styles.css";
 
 Modal.setAppElement("#root");
+import { FaDirections } from "react-icons/fa";
 
 export default function VolunteerIncidents() {
   const db = getFirestore(app);
@@ -24,6 +25,9 @@ export default function VolunteerIncidents() {
   const [tasks, setTasks] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const mapRef = useRef(null);
+  const mapsRef = useRef(null);
+  const [marker, setMarker] = useState(null);
   const { user } = useSelector((state) => state.user);
 
   const fetchUserProfile = async (phoneNumber) => {
@@ -55,6 +59,12 @@ export default function VolunteerIncidents() {
         const incidentData = docSnap.data();
         setIncident(incidentData);
         fetchTasks(incidentId);
+        if (incidentData.location) {
+          setMapCenter({
+            lat: incidentData.location.latitude,
+            lng: incidentData.location.longitude,
+          });
+        }
       } else {
         console.log("No such document!");
       }
@@ -96,6 +106,43 @@ export default function VolunteerIncidents() {
     }
   }, [user]);
 
+  const handleApiLoaded = ({ map, maps }) => {
+    mapRef.current = map;
+    mapsRef.current = maps;
+
+    if (incident && incident.location) {
+      const position = new maps.LatLng(
+        incident.location.latitude,
+        incident.location.longitude
+      );
+
+      const newMarker = new maps.Marker({
+        position: position,
+        map: map,
+        title: incident.title,
+      });
+
+      setMarker(newMarker);
+      map.setCenter(position);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (marker) {
+        marker.setMap(null);
+      }
+    };
+  }, [marker]);
+
+  const handleNavigation = () => {
+    if (incident && incident.location) {
+      const { latitude, longitude } = incident.location;
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+      window.open(googleMapsUrl, "_blank");
+    }
+  };
+
   return (
     <div className="p-4">
       {loading ? (
@@ -104,11 +151,36 @@ export default function VolunteerIncidents() {
         <>
           <h1 className="text-2xl font-bold mb-4">Assigned Incident</h1>
           <div className="space-y-4">
-            <div className="p-4 bg-slate-100 rounded shadow-md flex flex-wrap justify-between items-center">
-              <div className="lg:w-[85%]">
-                <p className="text-lg font-semibold text-black dark:text-black">
-                  {incident.title}
-                </p>
+            <div className="p-4 bg-slate-100 rounded-xl shadow-md flex flex-wrap lg:flex-nowrap justify-between items-start">
+              <div className="w-full lg:w-1/2 lg:pr-4 relative">
+                <div style={{ height: "400px", width: "100%" }}>
+                  <GoogleMapReact
+                    bootstrapURLKeys={{
+                      key: "AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc",
+                      libraries: ["visualization"],
+                    }}
+                    defaultCenter={{
+                      lat: incident.location.latitude,
+                      lng: incident.location.longitude,
+                    }}
+                    defaultZoom={16}
+                    yesIWantToUseGoogleMapApiInternals
+                    onGoogleApiLoaded={handleApiLoaded}
+                  ></GoogleMapReact>
+                </div>
+              </div>
+              <div className="w-full lg:w-1/2 lg:pl-2">
+                <div className="flex justify-between items-center pt-4">
+                  <p className="text-lg font-bold text-black dark:text-black">
+                    {incident.title}
+                  </p>
+                  <button
+                    className="ml-2 p-2 bg-blue-500 text-white rounded-full hover:bg-blue-700"
+                    onClick={handleNavigation}
+                  >
+                    <FaDirections size={36}/>
+                  </button>
+                </div>
                 <p className="text-sm text-bodydark2 dark:text-gray-400">
                   {incident.date}
                 </p>
@@ -124,27 +196,16 @@ export default function VolunteerIncidents() {
                 <p className="text-black dark:text-gray-200">
                   <strong>Severity:</strong> {incident.severity}
                 </p>
-                <div className="my-4">
-                  <GoogleMapReact
-                    bootstrapURLKeys={{ key: "YOUR_GOOGLE_MAPS_API_KEY" }}
-                    defaultCenter={{
-                      lat: incident.location.latitude,
-                      lng: incident.location.longitude,
-                    }}
-                    defaultZoom={16}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {incident.images &&
-                    incident.images.map((image, index) => (
-                      <img
-                        key={index}
-                        src={image}
-                        alt={`incident image ${index}`}
-                        className="w-full h-auto rounded cursor-pointer"
-                        onClick={() => openModal(image)}
-                      />
-                    ))}
+                <div className="grid grid-cols-2 gap-4 my-4">
+                  {incident.images && incident.images.map((image, index) => (
+                    <img
+                      key={index}
+                      src={image}
+                      alt={`incident image ${index}`}
+                      className="w-full h-auto rounded-lg cursor-pointer"
+                      onClick={() => openModal(image)}
+                    />
+                  ))}
                 </div>
               </div>
             </div>

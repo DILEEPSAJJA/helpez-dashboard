@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedAdminRoute from "./auth/ProtectedAdminRoute";
 import ProtectedVolunteerRoute from "./auth/ProtectedVolunteerRoute";
 import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
+import VolunteerIncidents from "./pages/volunteer/VolunteerIncidents";
 
 function App() {
   return (
@@ -99,6 +100,14 @@ function App() {
           element={
             <ProtectedVolunteerRoute>
               <VolunteerDashboard />
+            </ProtectedVolunteerRoute>
+          }
+        />
+        <Route
+          path="/volunteer/incidents"
+          element={
+            <ProtectedVolunteerRoute>
+              <VolunteerIncidents />
             </ProtectedVolunteerRoute>
           }
         />

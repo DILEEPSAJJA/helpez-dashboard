@@ -9,10 +9,12 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import GoogleMapReact from "google-map-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function Resources() {
   const db = getFirestore(app);
+  const navigate = useNavigate(); // Initialize useNavigate
   const [loading, setLoading] = useState(false);
   const [resources, setResources] = useState([]);
   const [filter, setFilter] = useState({ category: "All", severity: "All" });
@@ -122,6 +124,10 @@ export default function Resources() {
     }
   }, [resources]);
 
+  
+  const handleShowPickupRequests = () => {
+    navigate("/pickup-requests"); // Navigate to the new page
+  };
   const renderHeatmap = useCallback(() => {
     if (!mapRef.current || !mapsRef.current || !resources.length) return;
 
@@ -247,60 +253,70 @@ export default function Resources() {
       <h1 className="text-2xl font-bold mb-4">Requests</h1>
       <div className="mb-4 flex justify-between items-center">
         <div>
-          <label className="mr-2">Category:</label>
-          <select
-            name="category"
-            value={filter.category}
-            onChange={handleFilterChange}
-            className="p-2 border bg-transparent rounded-lg"
-          >
-            {uniqueCategories.map((category) => (
-              <option key={category} className="text-black" value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-          <label className="mr-2 ml-4">Severity:</label>
-          <select
-            name="severity"
-            value={filter.severity}
-            onChange={handleFilterChange}
-            className="p-2 border bg-transparent rounded-lg"
-          >
-            <option className="text-black" value="All">
-              All
-            </option>
-            <option className="text-black" value="Low">
-              Low
-            </option>
-            <option className="text-black" value="Medium">
-              Medium
-            </option>
-            <option className="text-black" value="High">
-              High
-            </option>
-          </select>
-        </div>
-        <div>
-          <button
-            onClick={handleToggleMap}
-            className="ml-4 px-4 py-2 mr-4 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
-          >
-            {showMap ? "Hide Map" : "Show Map"}
-          </button>
-          <label className="mr-2">Sort by:</label>
-          <select
-            value={sortField}
-            onChange={handleSortChange}
-            className="p-2 border bg-transparent rounded-lg"
-          >
-            <option className="text-black" value="neededBy">
-              Needed By
-            </option>
-            <option className="text-black" value="severity">
-              Severity
-            </option>
-          </select>
+        <div className="mb-4 flex justify-between items-center">
+  <div>
+  <button
+          onClick={handleShowPickupRequests}
+          className="bg-blue-500 text-white py-2 px-4 rounded-md mr-4"
+        >
+          Show Pickup Requests
+        </button>
+    <label className="mr-2">Category:</label>
+    <select
+      name="category"
+      value={filter.category}
+      onChange={handleFilterChange}
+      className="p-2 border bg-transparent rounded-lg"
+    >
+      {uniqueCategories.map((category) => (
+        <option key={category} className="text-black" value={category}>
+          {category}
+        </option>
+      ))}
+    </select>
+    <label className="mr-2 ml-4">Severity:</label>
+    <select
+      name="severity"
+      value={filter.severity}
+      onChange={handleFilterChange}
+      className="p-2 border bg-transparent rounded-lg"
+    >
+      <option className="text-black" value="All">
+        All
+      </option>
+      <option className="text-black" value="Low">
+        Low
+      </option>
+      <option className="text-black" value="Moderate">
+        Moderate
+      </option>
+      <option className="text-black" value="High">
+        High
+      </option>
+    </select>
+    <label className="mr-2 ml-4">Sort by:</label>
+    <select
+      value={sortField}
+      onChange={handleSortChange}
+      className="p-2 border bg-transparent rounded-lg"
+    >
+      <option className="text-black" value="neededBy">
+        Needed By
+      </option>
+      <option className="text-black" value="severity">
+        Severity
+      </option>
+    </select>
+  </div>
+  <button
+  onClick={handleToggleMap}
+  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 ml-4"
+>
+  {showMap ? "Hide Map" : "Show Map"}
+</button>
+
+</div>
+
         </div>
       </div>
 

@@ -17,6 +17,7 @@ import Organisations from "./pages/admin/Organisations";
 import AddOrganization from "./pages/admin/AddOrganisation";
 import NotFound from "./pages/NotFound";
 import TaskManagementPage from "./pages/admin/TaskManagementPage";
+import PickupRequests from "./pages/PickupRequests";
 
 import ProtectedAdminRoute from "./auth/ProtectedAdminRoute";
 import ProtectedVolunteerRoute from "./auth/ProtectedVolunteerRoute";
@@ -63,6 +64,9 @@ function App() {
             </ProtectedAdminRoute>
           }
         />
+         <Route path="pickup-requests" element={<ProtectedAdminRoute>
+          <PickupRequests />
+            </ProtectedAdminRoute>} />
         <Route
           path="/admin/members"
           element={

@@ -140,9 +140,8 @@ export default function Resources() {
     }
   }, [resources]);
 
-  
   const handleShowPickupRequests = () => {
-    navigate("/pickup-requests"); // Navigate to the new page
+    navigate("/admin/pickup-requests");
   };
   const renderHeatmap = useCallback(() => {
     if (!mapRef.current || !mapsRef.current || !resources.length) return;
@@ -282,7 +281,7 @@ export default function Resources() {
       const warehouseRef = doc(db, "warehouse", warehouseId);
       const warehouseData = warehouses.find((w) => w.id === warehouseId);
       const resourceData = resources.find((r) => r.id === resourceId);
-      console.log(resourceData.requestTitle+"\n"+warehouseData.name);
+      console.log(resourceData.requestTitle + "\n" + warehouseData.name);
 
       // Update request document
       await updateDoc(resourceRef, {
@@ -325,70 +324,72 @@ export default function Resources() {
       <h1 className="text-2xl font-bold mb-4">Requests</h1>
       <div className="mb-4 flex justify-between items-center">
         <div>
-        <div className="mb-4 flex justify-between items-center">
-  <div>
-  <button
-          onClick={handleShowPickupRequests}
-          className="bg-blue-500 text-white py-2 px-4 rounded-md mr-4"
-        >
-          Show Pickup Requests
-        </button>
-    <label className="mr-2">Category:</label>
-    <select
-      name="category"
-      value={filter.category}
-      onChange={handleFilterChange}
-      className="p-2 border bg-transparent rounded-lg"
-    >
-      {uniqueCategories.map((category) => (
-        <option key={category} className="text-black" value={category}>
-          {category}
-        </option>
-      ))}
-    </select>
-    <label className="mr-2 ml-4">Severity:</label>
-    <select
-      name="severity"
-      value={filter.severity}
-      onChange={handleFilterChange}
-      className="p-2 border bg-transparent rounded-lg"
-    >
-      <option className="text-black" value="All">
-        All
-      </option>
-      <option className="text-black" value="Low">
-        Low
-      </option>
-      <option className="text-black" value="Moderate">
-        Moderate
-      </option>
-      <option className="text-black" value="High">
-        High
-      </option>
-    </select>
-    <label className="mr-2 ml-4">Sort by:</label>
-    <select
-      value={sortField}
-      onChange={handleSortChange}
-      className="p-2 border bg-transparent rounded-lg"
-    >
-      <option className="text-black" value="neededBy">
-        Needed By
-      </option>
-      <option className="text-black" value="severity">
-        Severity
-      </option>
-    </select>
-  </div>
-  <button
-  onClick={handleToggleMap}
-  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 ml-4"
->
-  {showMap ? "Hide Map" : "Show Map"}
-</button>
-
-</div>
-
+          <div className="mb-4 flex justify-between items-center">
+            <div>
+              <button
+                onClick={handleShowPickupRequests}
+                className="bg-blue-500 text-white py-2 px-4 rounded-md mr-4"
+              >
+                Show Pickup Requests
+              </button>
+              <label className="mr-2">Category:</label>
+              <select
+                name="category"
+                value={filter.category}
+                onChange={handleFilterChange}
+                className="p-2 border bg-transparent rounded-lg"
+              >
+                {uniqueCategories.map((category) => (
+                  <option
+                    key={category}
+                    className="text-black"
+                    value={category}
+                  >
+                    {category}
+                  </option>
+                ))}
+              </select>
+              <label className="mr-2 ml-4">Severity:</label>
+              <select
+                name="severity"
+                value={filter.severity}
+                onChange={handleFilterChange}
+                className="p-2 border bg-transparent rounded-lg"
+              >
+                <option className="text-black" value="All">
+                  All
+                </option>
+                <option className="text-black" value="Low">
+                  Low
+                </option>
+                <option className="text-black" value="Moderate">
+                  Moderate
+                </option>
+                <option className="text-black" value="High">
+                  High
+                </option>
+              </select>
+              <label className="mr-2 ml-4">Sort by:</label>
+              <select
+                value={sortField}
+                onChange={handleSortChange}
+                className="p-2 border bg-transparent rounded-lg"
+              >
+                <option className="text-black" value="neededBy">
+                  Needed By
+                </option>
+                <option className="text-black" value="severity">
+                  Severity
+                </option>
+              </select>
+            </div>
+            <button
+              onClick={handleToggleMap}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 ml-4"
+            >
+              {showMap ? "Hide Map" : "Show Map"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -406,28 +407,30 @@ export default function Resources() {
                   className="p-4 dark:bg-slate-200 bg-slate-100 rounded-lg shadow-md flex justify-between items-center"
                 >
                   <div>
-                  <div>
-                    <p className="text-lg font-semibold text-black dark:text-black">
-                      {resource.requestTitle}
-                    </p>
-                    <p className="text-black">{resource.requestDescription}</p>
-                    <p className="text-sm text-black">
-                      <span className="font-bold">Needed By: </span>
-                      {resource.neededBy}
-                    </p>
-                    <span className="text-sm text-black">
-                      <span className="font-bold">Category: </span>
-                      {resource.category},
-                    </span>
-                    <span className="ms-2 text-sm text-black">
-                      <span className="font-bold">Contact: </span>
-                      {resource.contact}
-                    </span>
-                    <p className="text-sm text-black">
-                      <span className="font-bold">Location:</span>
-                      {` Lat: ${resource.location.latitude}, Long: ${resource.location.longitude}`}
-                    </p>
-                  </div>
+                    <div>
+                      <p className="text-lg font-semibold text-black dark:text-black">
+                        {resource.requestTitle}
+                      </p>
+                      <p className="text-black">
+                        {resource.requestDescription}
+                      </p>
+                      <p className="text-sm text-black">
+                        <span className="font-bold">Needed By: </span>
+                        {resource.neededBy}
+                      </p>
+                      <span className="text-sm text-black">
+                        <span className="font-bold">Category: </span>
+                        {resource.category},
+                      </span>
+                      <span className="ms-2 text-sm text-black">
+                        <span className="font-bold">Contact: </span>
+                        {resource.contact}
+                      </span>
+                      <p className="text-sm text-black">
+                        <span className="font-bold">Location:</span>
+                        {` Lat: ${resource.location.latitude}, Long: ${resource.location.longitude}`}
+                      </p>
+                    </div>
                     <p className="text-sm text-black pt-2">
                       <span className="font-bold">Warehouse: </span>
                       {resource.warehouseName || "Not assigned"}
@@ -446,7 +449,7 @@ export default function Resources() {
                   </div>
                   <div className="flex flex-col space-y-2">
                     <select
-                      value={selectedWarehouse}
+                      value={resource.warehouseId || ""}
                       onChange={(e) =>
                         handleAssignWarehouse(resource.id, e.target.value)
                       }

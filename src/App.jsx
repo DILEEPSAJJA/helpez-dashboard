@@ -64,9 +64,14 @@ function App() {
             </ProtectedAdminRoute>
           }
         />
-         <Route path="pickup-requests" element={<ProtectedAdminRoute>
-          <PickupRequests />
-            </ProtectedAdminRoute>} />
+        <Route
+          path="/admin/pickup-requests"
+          element={
+            <ProtectedAdminRoute>
+              <PickupRequests />
+            </ProtectedAdminRoute>
+          }
+        />
         <Route
           path="/admin/members"
           element={

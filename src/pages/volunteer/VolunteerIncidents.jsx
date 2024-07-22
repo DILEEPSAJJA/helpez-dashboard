@@ -155,7 +155,7 @@ export default function VolunteerIncidents() {
                 <div style={{ height: "400px", width: "100%" }}>
                   <GoogleMapReact
                     bootstrapURLKeys={{
-                      key: "YOUR_API_KEY",
+                      key: import.meta.env.VITE_MAPS_KEY,
                       libraries: ["visualization"],
                     }}
                     defaultCenter={{

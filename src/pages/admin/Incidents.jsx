@@ -297,7 +297,7 @@ export default function Incidents() {
                       className="mr-2"
                     />
                     <label htmlFor={`member-${member.id}`}>
-                      {member.name} - {member.role}
+                      {member.name}
                     </label>
                   </div>
                 ))

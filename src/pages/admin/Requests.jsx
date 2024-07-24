@@ -31,8 +31,15 @@ export default function Resources() {
   const [uniqueCategories, setUniqueCategories] = useState(["All"]);
   const [warehouses, setWarehouses] = useState([]);
   const [selectedWarehouse, setSelectedWarehouse] = useState("");
+  const [showPending, setShowPending] = useState(false);
 
-  const statusOptions = ["Started", "Dispatched", "Nearby", "Out for Delivery"];
+  const statusOptions = [
+    "Pending",
+    "Started",
+    "Dispatched",
+    "Nearby",
+    "Out for Delivery",
+  ];
 
   const fetchResources = async () => {
     setLoading(true);
@@ -102,7 +109,8 @@ export default function Resources() {
   const filteredResources = resources.filter((resource) => {
     return (
       (filter.category === "All" || resource.category === filter.category) &&
-      (filter.severity === "All" || resource.severity === filter.severity)
+      (filter.severity === "All" || resource.severity === filter.severity) &&
+      (!showPending || resource.status === "Pending")
     );
   });
 
@@ -324,14 +332,8 @@ export default function Resources() {
       <h1 className="text-2xl font-bold mb-4">Requests</h1>
       <div className="mb-4 flex justify-between items-center">
         <div>
-          <div className="mb-4 flex justify-between items-center">
+          <div className="mb-4 flex items-center">
             <div>
-              <button
-                onClick={handleShowPickupRequests}
-                className="bg-blue-500 text-white py-2 px-4 rounded-md mr-4"
-              >
-                Show Pickup Requests
-              </button>
               <label className="mr-2">Category:</label>
               <select
                 name="category"
@@ -349,6 +351,7 @@ export default function Resources() {
                   </option>
                 ))}
               </select>
+
               <label className="mr-2 ml-4">Severity:</label>
               <select
                 name="severity"
@@ -373,7 +376,7 @@ export default function Resources() {
               <select
                 value={sortField}
                 onChange={handleSortChange}
-                className="p-2 border bg-transparent rounded-lg"
+                className="p-2 border bg-transparent rounded-lg mr-4"
               >
                 <option className="text-black" value="neededBy">
                   Needed By
@@ -383,9 +386,31 @@ export default function Resources() {
                 </option>
               </select>
             </div>
+
+            <label className="inline-flex items-center select-none">
+              <input
+                type="checkbox"
+                className="form-checkbox"
+                checked={showPending}
+                onChange={() => setShowPending(!showPending)}
+                style={{ userSelect: "none" }}
+              />
+              <span className="ml-2" style={{ userSelect: "none" }}>
+                Show Pending
+              </span>
+            </label>
+          </div>
+          <div className="flex items-center">
+            <button
+              onClick={handleShowPickupRequests}
+              className="bg-blue-500 text-white py-2 px-4 rounded-md mr-4"
+            >
+              Show Pickup Requests
+            </button>
+
             <button
               onClick={handleToggleMap}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 ml-4"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
             >
               {showMap ? "Hide Map" : "Show Map"}
             </button>
@@ -437,7 +462,9 @@ export default function Resources() {
                     </p>
                     <p className="text-sm text-black">
                       <span className="font-bold">Status: </span>
-                      {resource.status || "Not set"}
+                      {resource.status === "Pending"
+                        ? "Pending Approval"
+                        : resource.status}
                     </p>
                     <p
                       className={`text-sm font-semibold ${getSeverityColor(

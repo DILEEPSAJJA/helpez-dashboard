@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import app from "../../utils/firebase";
 
 export default function TaskManagementPage() {
@@ -9,6 +9,7 @@ export default function TaskManagementPage() {
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("");
   const [filteredTasks, setFilteredTasks] = useState([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editTask, setEditTask] = useState({
     id: "",
@@ -43,7 +44,7 @@ export default function TaskManagementPage() {
     setLoading(false);
   };
 
-  const handleAddTask = async () => {
+  const handleCreateTask = async () => {
     if (!editTask.userId || !editTask.title || !editTask.description) {
       alert("Please complete all fields.");
       return;
@@ -66,8 +67,9 @@ export default function TaskManagementPage() {
 
     try {
       const docRef = await addDoc(collection(db, "tasks"), task);
-      setTasks([...tasks, { ...task, id: docRef.id }]);
-      setFilteredTasks([...filteredTasks, { ...task, id: docRef.id }]);
+      const newTask = { ...task, id: docRef.id };
+      setTasks([...tasks, newTask]);
+      setFilteredTasks([...filteredTasks, newTask]);
       setEditTask({
         id: "",
         title: "",
@@ -77,9 +79,52 @@ export default function TaskManagementPage() {
         status: "",
         phoneNumber: "",
       });
-      setEditMode(false);
+      setShowCreateForm(false);
     } catch (error) {
-      console.error("Error adding task:", error);
+      console.error("Error creating task:", error);
+    }
+  };
+
+  const handleUpdateTask = async () => {
+    if (!editTask.userId || !editTask.title || !editTask.description) {
+      alert("Please complete all fields.");
+      return;
+    }
+
+    const selectedUser = users.find(user => user.id === editTask.userId);
+    if (!selectedUser) {
+      alert("Selected user not found.");
+      return;
+    }
+
+    const updatedTask = {
+      title: editTask.title,
+      description: editTask.description,
+      userId: editTask.userId,
+      userName: selectedUser.name,
+      status: editTask.status,
+      phoneNumber: selectedUser.phoneNumber,
+    };
+
+    try {
+      await updateDoc(doc(db, "tasks", editTask.id), updatedTask);
+      const updatedTasks = tasks.map(task => 
+        task.id === editTask.id ? { ...updatedTask, id: editTask.id } : task
+      );
+      setTasks(updatedTasks);
+      setFilteredTasks(updatedTasks);
+      setEditMode(false);
+      setEditTask({
+        id: "",
+        title: "",
+        description: "",
+        userId: "",
+        userName: "",
+        status: "",
+        phoneNumber: "",
+      });
+    } catch (error) {
+      console.error("Error updating task:", error);
     }
   };
 
@@ -112,13 +157,21 @@ export default function TaskManagementPage() {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Task Management</h1>
-      <input
-        type="text"
-        className="p-2 mb-4 w-full border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-        placeholder="Search by task title or user name"
-        value={filter}
-        onChange={handleFilterChange}
-      />
+      <div className="flex mb-4">
+        <input
+          type="text"
+          className="p-2 flex-grow border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+          placeholder="Search by task title or user name"
+          value={filter}
+          onChange={handleFilterChange}
+        />
+        <button
+          className="ml-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700"
+          onClick={() => setShowCreateForm(true)}
+        >
+          Create Task
+        </button>
+      </div>
       {loading ? (
         <p>Loading...</p>
       ) : (
@@ -160,10 +213,12 @@ export default function TaskManagementPage() {
         </div>
       )}
 
-      {editMode && (
+      {(showCreateForm || editMode) && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md w-1/3 text-black">
-            <h2 className="text-xl font-bold mb-4">{editTask.id ? "Edit Task" : "Create New Task"}</h2>
+            <h2 className="text-xl font-bold mb-4">
+              {editMode ? "Edit Task" : "Create New Task"}
+            </h2>
             <input
               className="w-full p-2 mb-4 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               type="text"
@@ -182,7 +237,7 @@ export default function TaskManagementPage() {
               value={editTask.userId}
               onChange={(e) => setEditTask({ ...editTask, userId: e.target.value })}
             >
-              <option value="">Select User</option>
+              <option value="">Select Volunteer</option>
               {users.map(user => (
                 <option key={user.id} value={user.id}>{user.name}</option>
               ))}
@@ -190,13 +245,25 @@ export default function TaskManagementPage() {
             <div className="flex justify-end space-x-2">
               <button
                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700"
-                onClick={handleAddTask}
+                onClick={editMode ? handleUpdateTask : handleCreateTask}
               >
-                {editTask.id ? "Save" : "Create"}
+                {editMode ? "Update" : "Create"}
               </button>
               <button
                 className="px-4 py-2 bg-slate-300 text-black rounded-lg hover:bg-slate-500"
-                onClick={() => setEditMode(false)}
+                onClick={() => {
+                  setShowCreateForm(false);
+                  setEditMode(false);
+                  setEditTask({
+                    id: "",
+                    title: "",
+                    description: "",
+                    userId: "",
+                    userName: "",
+                    status: "",
+                    phoneNumber: "",
+                  });
+                }}
               >
                 Cancel
               </button>

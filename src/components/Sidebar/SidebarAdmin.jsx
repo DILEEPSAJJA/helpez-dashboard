@@ -172,7 +172,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                   Requests
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link
                   to=""
                   className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
@@ -209,7 +209,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                   </svg>
                   Users
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link
                   to="/admin/analytics"
@@ -228,6 +228,26 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                     <path d="M640-160v-280h160v280H640Zm-240 0v-640h160v640H400Zm-240 0v-440h160v440H160Z" />
                   </svg>
                   Analytics
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/admin/inventory"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                    pathname.includes("inventory") &&
+                    "bg-graydark dark:bg-meta-4"
+                  }`}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24px"
+                    viewBox="0 -960 960 960"
+                    width="24px"
+                    fill="#e8eaed"
+                  >
+                    <path d="M200-80q-33 0-56.5-23.5T120-160v-451q-18-11-29-28.5T80-680v-120q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v120q0 23-11 40.5T840-611v451q0 33-23.5 56.5T760-80H200Zm0-520v440h560v-440H200Zm-40-80h640v-120H160v120Zm200 280h240v-80H360v80Zm120 20Z" />
+                  </svg>
+                  Inventory
                 </Link>
               </li>
               <li>

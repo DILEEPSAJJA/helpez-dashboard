@@ -25,10 +25,22 @@ export default function Incidents() {
   const [showAssignPopover, setShowAssignPopover] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [members, setMembers] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [severityFilter, setSeverityFilter] = useState("");
 
   const fetchIncidents = async () => {
     setLoading(true);
-    const snapshot = await getDocs(collection(db, "incidents"));
+    let q = collection(db, "incidents");
+
+    if (categoryFilter) {
+      q = query(q, where("category", "==", categoryFilter));
+    }
+
+    if (severityFilter) {
+      q = query(q, where("severity", "==", severityFilter));
+    }
+
+    const snapshot = await getDocs(q);
     const data = snapshot.docs.map((doc) => {
       const vals = doc.data();
       const id = doc.id;
@@ -93,10 +105,12 @@ export default function Incidents() {
     await updateDoc(userRef, {
       isAssigned: newAssignedStatus,
       assignedIncident: newAssignedStatus
-        ? { id: selectedIncident.id,
-           title: selectedIncident.title,
-          category: selectedIncident.category,
-            description: selectedIncident.description }
+        ? {
+            id: selectedIncident.id,
+            title: selectedIncident.title,
+            category: selectedIncident.category,
+            description: selectedIncident.description,
+          }
         : null,
     });
 
@@ -127,54 +141,89 @@ export default function Incidents() {
 
   useEffect(() => {
     fetchIncidents();
-  }, []);
+  }, [categoryFilter, severityFilter]);
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Incidents</h1>
+      <div className="mb-4">
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="mr-4 p-2 border rounded-lg text-black"
+        >
+          <option value="">All Categories</option>
+          <option value="Natural">Natural</option>
+          <option value="Accident">Accident</option>
+          <option value="Medical">Medical</option>
+          <option value="Environmental">Environmental</option>
+          <option value="Technological">Technological</option>
+          <option value="Miscellaneous">Miscellaneous</option>
+        </select>
+        <select
+          value={severityFilter}
+          onChange={(e) => setSeverityFilter(e.target.value)}
+          className="p-2 border rounded-lg text-black"
+        >
+          <option value="">All Severities</option>
+          <option value="Low">Low</option>
+          <option value="Moderate">Moderate</option>
+          <option value="High">High</option>
+        </select>
+      </div>
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <div className="space-y-4">
-          {incidents.map((incident) => (
-            <div
-              key={incident.id}
-              className="p-4 bg-slate-100 rounded-xl shadow-md flex flex-wrap justify-between items-center"
-            >
-              <div className="lg:w-[85%]">
-                <p className="text-lg font-semibold text-black dark:text-black">
-                  {incident.title}
-                </p>
-                <p className="text-sm text-bodydark2 dark:text-gray-400">
-                  {incident.date}
-                </p>
-                <p className="text-black dark:text-gray-200">
-                  {incident.description}
-                </p>
+        <>
+          {incidents.length > 0 ? (
+            <>
+              <div className="space-y-4">
+                {incidents.map((incident) => (
+                  <div
+                    key={incident.id}
+                    className="p-4 bg-slate-100 rounded-xl shadow-md flex flex-wrap justify-between items-center"
+                  >
+                    <div className="lg:w-[85%]">
+                      <p className="text-lg font-semibold text-black dark:text-black">
+                        {incident.title}
+                      </p>
+                      <p className="text-sm text-bodydark2 dark:text-gray-400">
+                        {incident.date}
+                      </p>
+                      <p className="text-black dark:text-gray-200">
+                        {incident.description}
+                      </p>
+                    </div>
+                    <div className="flex space-x-2 pt-4">
+                      <button
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700"
+                        onClick={() => handleOpenAssignPopover(incident)}
+                      >
+                        Assign Task
+                      </button>
+                      <button
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
+                        onClick={() => handleEdit(incident)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
+                        onClick={() => handleDelete(incident.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex space-x-2 pt-4">
-                <button
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700"
-                  onClick={() => handleOpenAssignPopover(incident)}
-                >
-                  Assign Task
-                </button>
-                <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
-                  onClick={() => handleEdit(incident)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
-                  onClick={() => handleDelete(incident.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            </>
+          ) : (
+            <>
+              <p>No incidents found</p>
+            </>
+          )}
+        </>
       )}
 
       {editMode && (
@@ -230,11 +279,16 @@ export default function Incidents() {
       {showAssignPopover && selectedIncident && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
           <div className="bg-white p-6 rounded-xl shadow-xl">
-            <h2 className="text-xl font-bold mb-4 text-black">Assign Members</h2>
+            <h2 className="text-xl font-bold mb-4 text-black">
+              Assign Members
+            </h2>
             <div className="max-h-60 overflow-y-auto">
               {members.length > 0 ? (
                 members.map((member) => (
-                  <div key={member.id} className="flex items-center mb-2 text-black">
+                  <div
+                    key={member.id}
+                    className="flex items-center mb-2 text-black"
+                  >
                     <input
                       type="checkbox"
                       id={`member-${member.id}`}

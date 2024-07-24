@@ -18,6 +18,7 @@ import AddOrganization from "./pages/admin/AddOrganisation";
 import NotFound from "./pages/NotFound";
 import TaskManagementPage from "./pages/admin/TaskManagementPage";
 import PickupRequests from "./pages/PickupRequests";
+import Inventory from "./pages/admin/Inventory";
 
 import ProtectedAdminRoute from "./auth/ProtectedAdminRoute";
 import ProtectedVolunteerRoute from "./auth/ProtectedVolunteerRoute";
@@ -104,7 +105,14 @@ function App() {
             </ProtectedAdminRoute>
           }
         />
-
+        <Route
+          path="/admin/inventory"
+          element={
+            <ProtectedAdminRoute>
+              <Inventory />
+            </ProtectedAdminRoute>
+          }
+        />
         <Route
           path="/volunteer/dashboard"
           element={

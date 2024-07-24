@@ -225,7 +225,7 @@ export default function Resources() {
               </option>
             ))}
           </select>
-          <select
+          {/* <select
             value={selectedWarehouse}
             onChange={(e) => setSelectedWarehouse(e.target.value)}
             className="p-2 border rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -237,7 +237,7 @@ export default function Resources() {
                 {warehouse.name}
               </option>
             ))}
-          </select>
+          </select> */}
         </div>
 
         <GoogleMapReact
@@ -339,7 +339,7 @@ export default function Resources() {
                 name="category"
                 value={filter.category}
                 onChange={handleFilterChange}
-                className="p-2 border bg-transparent rounded-lg"
+                className="p-2 border bg-transparent rounded-lg mr-16"
               >
                 {uniqueCategories.map((category) => (
                   <option
@@ -357,7 +357,7 @@ export default function Resources() {
                 name="severity"
                 value={filter.severity}
                 onChange={handleFilterChange}
-                className="p-2 border bg-transparent rounded-lg"
+                className="p-2 border bg-transparent rounded-lg mr-16"
               >
                 <option className="text-black" value="All">
                   All
@@ -376,7 +376,7 @@ export default function Resources() {
               <select
                 value={sortField}
                 onChange={handleSortChange}
-                className="p-2 border bg-transparent rounded-lg mr-4"
+                className="p-2 border bg-transparent rounded-lg mr-16"
               >
                 <option className="text-black" value="neededBy">
                   Needed By
@@ -405,7 +405,7 @@ export default function Resources() {
               onClick={handleShowPickupRequests}
               className="bg-blue-500 text-white py-2 px-4 rounded-md mr-4"
             >
-              Show Pickup Requests
+              All Pickup Requests
             </button>
 
             <button

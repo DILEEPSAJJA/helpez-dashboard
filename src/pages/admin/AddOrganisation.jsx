@@ -25,7 +25,7 @@ const AddOrganisation = () => {
     try {
       await addDoc(collection(db, "organisations"), newOrg);
       alert("Organisation added successfully!");
-      navigate("/organisations");
+      navigate("/admin/organisations");
       // Clear the form
       setName("");
       setDescription("");

@@ -32,6 +32,7 @@ export default function Resources() {
   const [warehouses, setWarehouses] = useState([]);
   const [selectedWarehouse, setSelectedWarehouse] = useState("");
   const [showPending, setShowPending] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState(null);
 
   const statusOptions = [
     "Pending",
@@ -131,9 +132,33 @@ export default function Resources() {
     }
   };
 
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setMapCenter({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error getting current location:", error);
+          toast.error("Unable to get current location");
+        }
+      );
+    } else {
+      toast.error("Geolocation is not supported by this browser");
+    }
+  };
+
   useEffect(() => {
     fetchResources();
     fetchWarehouses();
+    getCurrentLocation();
   }, []);
 
   useEffect(() => {
@@ -245,7 +270,7 @@ export default function Resources() {
             key: "AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc",
             libraries: ["visualization"],
           }}
-          defaultCenter={mapCenter}
+          defaultCenter={currentLocation || mapCenter}
           defaultZoom={16}
           yesIWantToUseGoogleMapApiInternals
           onGoogleApiLoaded={handleApiLoaded}
@@ -327,206 +352,195 @@ export default function Resources() {
     }
   };
 
-  return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Requests</h1>
-      <div className="mb-4 flex justify-between items-center">
-        <div>
-          <div className="mb-4 flex items-center">
-            <div>
-              <label className="mr-2">Category:</label>
-              <select
-                name="category"
-                value={filter.category}
-                onChange={handleFilterChange}
-                className="p-2 border bg-transparent rounded-lg mr-16"
-              >
-                {uniqueCategories.map((category) => (
-                  <option
-                    key={category}
-                    className="text-black"
-                    value={category}
-                  >
-                    {category}
-                  </option>
-                ))}
-              </select>
-
-              <label className="mr-2 ml-4">Severity:</label>
-              <select
-                name="severity"
-                value={filter.severity}
-                onChange={handleFilterChange}
-                className="p-2 border bg-transparent rounded-lg mr-16"
-              >
-                <option className="text-black" value="All">
-                  All
-                </option>
-                <option className="text-black" value="Low">
-                  Low
-                </option>
-                <option className="text-black" value="Moderate">
-                  Moderate
-                </option>
-                <option className="text-black" value="High">
-                  High
-                </option>
-              </select>
-              <label className="mr-2 ml-4">Sort by:</label>
-              <select
-                value={sortField}
-                onChange={handleSortChange}
-                className="p-2 border bg-transparent rounded-lg mr-16"
-              >
-                <option className="text-black" value="neededBy">
-                  Needed By
-                </option>
-                <option className="text-black" value="severity">
-                  Severity
-                </option>
-              </select>
-            </div>
-
-            <label className="inline-flex items-center select-none">
-              <input
-                type="checkbox"
-                className="form-checkbox"
-                checked={showPending}
-                onChange={() => setShowPending(!showPending)}
-                style={{ userSelect: "none" }}
-              />
-              <span className="ml-2" style={{ userSelect: "none" }}>
-                Show Pending
-              </span>
-            </label>
-          </div>
-          <div className="flex items-center">
-            <button
-              onClick={handleShowPickupRequests}
-              className="bg-blue-500 text-white py-2 px-4 rounded-md mr-4"
-            >
-              All Pickup Requests
-            </button>
-
-            <button
-              onClick={handleToggleMap}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
-            >
-              {showMap ? "Hide Map" : "Show Map"}
-            </button>
-          </div>
+ return (
+  <div className="p-4">
+    <h1 className="text-2xl font-bold mb-4">Requests</h1>
+    <div className="mb-4">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center">
+        <div className="mb-2 sm:mb-0">
+          <label className="mr-2">Category:</label>
+          <select
+            name="category"
+            value={filter.category}
+            onChange={handleFilterChange}
+            className="p-2 border bg-transparent rounded-lg mb-2 sm:mb-0 sm:mr-4 w-full sm:w-auto"
+          >
+            {uniqueCategories.map((category) => (
+              <option key={category} className="text-black" value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
         </div>
+
+        <div className="mb-2 sm:mb-0">
+          <label className="mr-2">Severity:</label>
+          <select
+            name="severity"
+            value={filter.severity}
+            onChange={handleFilterChange}
+            className="p-2 border bg-transparent rounded-lg mb-2 sm:mb-0 sm:mr-4 w-full sm:w-auto"
+          >
+            <option className="text-black" value="All">All</option>
+            <option className="text-black" value="Low">Low</option>
+            <option className="text-black" value="Moderate">Moderate</option>
+            <option className="text-black" value="High">High</option>
+          </select>
+        </div>
+
+        <div className="mb-2 sm:mb-0">
+          <label className="mr-2">Sort by:</label>
+          <select
+            value={sortField}
+            onChange={handleSortChange}
+            className="p-2 border bg-transparent rounded-lg mb-2 sm:mb-0 sm:mr-4 w-full sm:w-auto"
+          >
+            <option className="text-black" value="neededBy">Needed By</option>
+            <option className="text-black" value="severity">Severity</option>
+          </select>
+        </div>
+
+        <label className="inline-flex items-center select-none">
+          <input
+            type="checkbox"
+            className="form-checkbox"
+            checked={showPending}
+            onChange={() => setShowPending(!showPending)}
+            style={{ userSelect: "none" }}
+          />
+          <span className="ml-2" style={{ userSelect: "none" }}>
+            Show Pending
+          </span>
+        </label>
       </div>
+      <div className="flex flex-col sm:flex-row sm:items-center">
+        <button
+          onClick={handleShowPickupRequests}
+          className="bg-blue-500 text-white py-2 px-4 rounded-md mb-2 sm:mb-0 sm:mr-4"
+        >
+          All Pickup Requests
+        </button>
 
-      {showMap && renderMap()}
-
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <>
-          {sortedAndFilteredResources?.length > 0 ? (
-            <div className="space-y-4 my-4">
-              {sortedAndFilteredResources?.map((resource) => (
-                <div
-                  key={resource.id}
-                  className="p-4 dark:bg-slate-200 bg-slate-100 rounded-lg shadow-md flex justify-between items-center"
-                >
-                  <div>
-                    <div>
-                      <p className="text-lg font-semibold text-black dark:text-black">
-                        {resource.requestTitle}
-                      </p>
-                      <p className="text-black">
-                        {resource.requestDescription}
-                      </p>
-                      <p className="text-sm text-black">
-                        <span className="font-bold">Needed By: </span>
-                        {resource.neededBy}
-                      </p>
-                      <span className="text-sm text-black">
-                        <span className="font-bold">Category: </span>
-                        {resource.category},
-                      </span>
-                      <span className="ms-2 text-sm text-black">
-                        <span className="font-bold">Contact: </span>
-                        {resource.contact}
-                      </span>
-                      <p className="text-sm text-black">
-                        <span className="font-bold">Location:</span>
-                        {` Lat: ${resource.location.latitude}, Long: ${resource.location.longitude}`}
-                      </p>
-                    </div>
-                    <p className="text-sm text-black pt-2">
-                      <span className="font-bold">Warehouse: </span>
-                      {resource.warehouseName || "Not assigned"}
-                    </p>
-                    <p className="text-sm text-black">
-                      <span className="font-bold">Status: </span>
-                      {resource.status === "Pending"
-                        ? "Pending Approval"
-                        : resource.status}
-                    </p>
-                    <p
-                      className={`text-sm font-semibold ${getSeverityColor(
-                        resource.severity
-                      )}`}
-                    >
-                      Severity: {resource.severity}
-                    </p>
-                  </div>
-                  <div className="flex flex-col space-y-2">
-                    <select
-                      value={resource.warehouseId || ""}
-                      onChange={(e) =>
-                        handleAssignWarehouse(resource.id, e.target.value)
-                      }
-                      className="p-2 border bg-transparent rounded-lg text-black"
-                    >
-                      <option value="">Assign Warehouse</option>
-                      {warehouses.map((warehouse) => (
-                        <option key={warehouse.id} value={warehouse.id}>
-                          {warehouse.name}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={resource.status || ""}
-                      onChange={(e) =>
-                        handleStatusUpdate(resource.id, e.target.value)
-                      }
-                      className="p-2 border bg-transparent rounded-lg text-black"
-                    >
-                      <option value="">Set Status</option>
-                      {statusOptions.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
-                      onClick={() => handleDelete(resource.id)}
-                    >
-                      Delete
-                    </button>
-                    <button
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
-                      onClick={() => handleSendAlert(resource.id)}
-                      disabled={resource.alertSent}
-                    >
-                      {resource.alertSent ? "Alert Sent" : "Send Alert"}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="h-[50vh] flex items-center justify-center">
-              <p className="text-center text-gray-600">No resources found.</p>
-            </div>
-          )}
-        </>
-      )}
+        <button
+          onClick={handleToggleMap}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
+        >
+          {showMap ? "Hide Map" : "Show Map"}
+        </button>
+      </div>
     </div>
-  );
+
+    {showMap && (
+      <div className="h-[300px] sm:h-[500px] w-full mb-4">
+        {renderMap()}
+      </div>
+    )}
+
+    {loading ? (
+      <p>Loading...</p>
+    ) : (
+      <>
+        {sortedAndFilteredResources?.length > 0 ? (
+          <div className="space-y-4 my-4">
+            {sortedAndFilteredResources?.map((resource) => (
+              <div
+                key={resource.id}
+                className="p-4 dark:bg-slate-200 bg-slate-100 rounded-lg shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center"
+              >
+                <div className="mb-4 sm:mb-0">
+                  <div>
+                    <p className="text-lg font-semibold text-black dark:text-black">
+                      {resource.requestTitle}
+                    </p>
+                    <p className="text-black">{resource.requestDescription}</p>
+                    <p className="text-sm text-black">
+                      <span className="font-bold">Needed By: </span>
+                      {resource.neededBy}
+                    </p>
+                    <span className="text-sm text-black">
+                      <span className="font-bold">Category: </span>
+                      {resource.category},
+                    </span>
+                    <span className="ms-2 text-sm text-black">
+                      <span className="font-bold">Contact: </span>
+                      {resource.contact}
+                    </span>
+                    <p className="text-sm text-black">
+                      <span className="font-bold">Location:</span>
+                      {` Lat: ${resource.location.latitude}, Long: ${resource.location.longitude}`}
+                    </p>
+                  </div>
+                  <p className="text-sm text-black pt-2">
+                    <span className="font-bold">Warehouse: </span>
+                    {resource.warehouseName || "Not assigned"}
+                  </p>
+                  <p className="text-sm text-black">
+                    <span className="font-bold">Status: </span>
+                    {resource.status === "Pending"
+                      ? "Pending Approval"
+                      : resource.status}
+                  </p>
+                  <p
+                    className={`text-sm font-semibold ${getSeverityColor(
+                      resource.severity
+                    )}`}
+                  >
+                    Severity: {resource.severity}
+                  </p>
+                </div>
+                <div className="flex flex-col space-y-2 w-full sm:w-auto">
+                  <select
+                    value={resource.warehouseId || ""}
+                    onChange={(e) =>
+                      handleAssignWarehouse(resource.id, e.target.value)
+                    }
+                    className="p-2 border bg-transparent rounded-lg text-black w-full sm:w-auto"
+                  >
+                    <option value="">Assign Warehouse</option>
+                    {warehouses.map((warehouse) => (
+                      <option key={warehouse.id} value={warehouse.id}>
+                        {warehouse.name}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={resource.status || ""}
+                    onChange={(e) =>
+                      handleStatusUpdate(resource.id, e.target.value)
+                    }
+                    className="p-2 border bg-transparent rounded-lg text-black w-full sm:w-auto"
+                  >
+                    <option value="">Set Status</option>
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 w-full sm:w-auto"
+                    onClick={() => handleDelete(resource.id)}
+                  >
+                    Delete
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 w-full sm:w-auto"
+                    onClick={() => handleSendAlert(resource.id)}
+                    disabled={resource.alertSent}
+                  >
+                    {resource.alertSent ? "Alert Sent" : "Send Alert"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="h-[50vh] flex items-center justify-center">
+            <p className="text-center text-gray-600">No resources found.</p>
+          </div>
+        )}
+      </>
+    )}
+  </div>
+);
 }
